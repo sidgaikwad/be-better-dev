@@ -1,17 +1,7 @@
 {
-  "name": "zerostarter",
-  "version": "0.1.19",
+  "name": "be-better-dev",
+  "version": "0.0.0",
   "private": true,
-  "homepage": "https://github.com/nrjdalal/zerostarter#readme",
-  "bugs": "https://github.com/nrjdalal/zerostarter/issues",
-  "license": "MIT",
-  "author": {
-    "name": "Neeraj Dalal",
-    "email": "admin@nrjdalal.com",
-    "url": "https://nrjdalal.com"
-  },
-  "repository": "nrjdalal/zerostarter",
-  "funding": "https://github.com/sponsors/nrjdalal",
   "workspaces": [
     "api/*",
     "packages/*",

@@ -1,10 +1,13 @@
 ---
 name: skills-manager
 description: Keep the AGENTS.md skills tables generated from skill descriptions, and understand how a fork syncs its skills from upstream. Use after editing a skill's frontmatter, when adding or removing a skill, or when the AGENTS.md skills-table check fails.
-source: local
+source: https://github.com/nrjdalal/zerostarter
 files:
   - .github/scripts/skills-manager.ts
 ---
+
+> [!CAUTION]
+> Synced from https://github.com/nrjdalal/zerostarter. Customize this skill or remove this note to stop syncing.
 
 # Skills Manager
 

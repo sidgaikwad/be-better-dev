@@ -43,7 +43,7 @@
     "typescript": "catalog:"
   },
   "portless": {
-    "name": "api.zerostarter",
+    "name": "api.be-better-dev",
     "script": "dev:app"
   }
 }

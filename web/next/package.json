@@ -79,7 +79,7 @@
     "defaults"
   ],
   "portless": {
-    "name": "zerostarter",
+    "name": "be-better-dev",
     "script": "dev:app"
   }
 }

@@ -1,8 +1,11 @@
 ---
 name: codebase-map
 description: "Orient in this repo: which file to edit for a change, how a change ripples across the stack, and how to search the code. Use at the start of a task in an unfamiliar area, or before a cross-cutting change."
-source: local
+source: https://github.com/nrjdalal/zerostarter
 ---
+
+> [!CAUTION]
+> Synced from https://github.com/nrjdalal/zerostarter. Customize this skill or remove this note to stop syncing.
 
 # Codebase Map
 
@@ -21,7 +24,7 @@ packages/cli/     # the zerostarter scaffolding CLI (canonical repo only; init s
 tests/            # the whole suite, mirroring each subject's path (canonical repo only; forks take no tests)
 ```
 
-Read `AGENTS.md` first for the rules; `curl "$(bunx portless get zerostarter)/llms-full.txt"` dumps the whole codebase as one context file.
+Read `AGENTS.md` first for the rules; `curl "$(bunx portless get be-better-dev)/llms-full.txt"` dumps the whole codebase as one context file.
 
 ## Where to edit for X
 

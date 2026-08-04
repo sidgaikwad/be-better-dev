@@ -1,0 +1,102 @@
+{
+  "add-package": {
+    "ref": "main",
+    "upstream": "5d352c43ca8a",
+    "written": "ea1f489e7b3b"
+  },
+  "agent-browser": {
+    "ref": "main",
+    "upstream": "d4c7e89a3ad8",
+    "written": "d4c7e89a3ad8"
+  },
+  "api-endpoint": {
+    "ref": "main",
+    "upstream": "cbfd2e9c9f59",
+    "written": "be60e746344d"
+  },
+  "audit": {
+    "ref": "main",
+    "upstream": "aaf334b65b86",
+    "written": "c48164d98637"
+  },
+  "codebase-map": {
+    "ref": "main",
+    "upstream": "5931db064a6f",
+    "written": "6e53ea4338fa"
+  },
+  "db-migration": {
+    "ref": "main",
+    "upstream": "d3a65f3c1446",
+    "written": "a36df1948b9f"
+  },
+  "design": {
+    "ref": "main",
+    "upstream": "c309484258b3",
+    "written": "309d39774134"
+  },
+  "dev": {
+    "ref": "main",
+    "upstream": "04cbc4475e04",
+    "written": "31c334380495"
+  },
+  "doc-sync": {
+    "ref": "main",
+    "upstream": "8bc75d57a1d3",
+    "written": "c0b4e6fe975c"
+  },
+  "docker-test": {
+    "ref": "main",
+    "upstream": "0f70bbdc1ad6",
+    "written": "47d264e6b65a"
+  },
+  "fonts": {
+    "ref": "main",
+    "upstream": "04b2d4600f0b",
+    "written": "f727973d41d5"
+  },
+  "gh-commit": {
+    "ref": "main",
+    "upstream": "8c1771c45476",
+    "written": "7cbf3a24dd80"
+  },
+  "icebox": {
+    "ref": "main",
+    "upstream": "d08f2e2f4691",
+    "written": "4203d723800e"
+  },
+  "ignore-sync": {
+    "ref": "main",
+    "upstream": "0c5552653755",
+    "written": "73844ef62f70"
+  },
+  "portless": {
+    "ref": "main",
+    "upstream": "bfe8b5f1b95d",
+    "written": "bfe8b5f1b95d"
+  },
+  "release": {
+    "ref": "main",
+    "upstream": "e0f2e3263cc1",
+    "written": "8230ac40a0f9"
+  },
+  "runtime-apis": {
+    "ref": "main",
+    "upstream": "96f1e12ab132",
+    "written": "62273deb3688"
+  },
+  "shadcn-sync": {
+    "ref": "main",
+    "upstream": "fd7bd0e831f4",
+    "written": "b73d1e89930b"
+  },
+  "skills-manager": {
+    "ref": "main",
+    "upstream": "07fc4165840c",
+    "written": "b6ca150ee1df"
+  },
+  "ui-verify": {
+    "ref": "main",
+    "upstream": "dd4b12c23039",
+    "written": "3869965c6626"
+  }
+}

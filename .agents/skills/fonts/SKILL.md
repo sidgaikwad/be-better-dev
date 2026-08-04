@@ -1,8 +1,11 @@
 ---
 name: fonts
 description: Add, swap, or remove a self-hosted web font (latin variable woff2 from fontsource, localized via next/font/local). Use when adding a font role, or debugging font loading, preload, or CLS.
-source: local
+source: https://github.com/nrjdalal/zerostarter
 ---
+
+> [!CAUTION]
+> Synced from https://github.com/nrjdalal/zerostarter. Customize this skill or remove this note to stop syncing.
 
 # Fonts
 
