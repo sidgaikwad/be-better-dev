@@ -8,10 +8,12 @@
   },
   "devDependencies": {
     "@packages/config": "workspace:*",
+    "@packages/db": "workspace:*",
     "@packages/env": "workspace:*",
     "@types/bun": "catalog:",
     "@types/fontkit": "catalog:",
     "@types/node": "catalog:",
+    "drizzle-orm": "catalog:",
     "fontkit": "catalog:",
     "tldts": "catalog:",
     "typescript": "catalog:",
