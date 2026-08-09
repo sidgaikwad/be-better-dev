@@ -146,3 +146,13 @@
     @apply mt-0;
   }
 }
+
+/* shiki dual themes: flip to the dark palette under next-themes' class strategy */
+.dark .shiki,
+.dark .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+}
+.shiki {
+  @apply m-0;
+}
