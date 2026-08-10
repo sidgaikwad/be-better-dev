@@ -4,6 +4,7 @@ import {
   RiArrowLeftLine,
   RiArrowRightLine,
   RiCheckboxCircleFill,
+  RiErrorWarningLine,
   RiLockLine,
 } from "@remixicon/react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -45,7 +46,7 @@ export function LessonPlayer({ slug }: { slug: string }) {
     return () => clearInterval(interval)
   }, [slug])
 
-  const { data, isPending } = useQuery({
+  const { data, isPending, error, refetch } = useQuery({
     queryKey: ["learn", "lesson", slug],
     queryFn: async () => {
       const { data, error } = await unwrap(
@@ -92,12 +93,33 @@ export function LessonPlayer({ slug }: { slug: string }) {
     },
   })
 
-  if (isPending || !data) {
+  if (isPending) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-8 w-2/3" />
         <Skeleton className="h-64" />
       </div>
+    )
+  }
+
+  // Show the failure rather than skeletons that never resolve; see the same
+  // note in course-map.
+  if (error || !data) {
+    return (
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <RiErrorWarningLine />
+          </EmptyMedia>
+          <EmptyTitle>Could not load this lesson</EmptyTitle>
+          <EmptyDescription>{error?.message ?? "The API returned no lesson."}</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Button variant="secondary" onClick={() => refetch()}>
+            Try again
+          </Button>
+        </EmptyContent>
+      </Empty>
     )
   }
 
