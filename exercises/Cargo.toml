@@ -18,6 +18,7 @@ members = [
   "tokio",
   "testing",
   "streams-cancellation",
+  "concurrency-patterns",
 ]
 
 # One crate per course section, named for its section slug. Each crate ships
