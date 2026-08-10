@@ -25,7 +25,7 @@ export const features = {
   allowlist: false,
   apiDocs: false,
   blog: false,
-  docs: true,
+  docs: false,
   internalDocs: true,
   waitlist: false,
 }

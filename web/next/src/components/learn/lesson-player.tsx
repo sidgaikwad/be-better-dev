@@ -11,6 +11,7 @@ import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 
 import { Markdown } from "@/components/learn/markdown"
+import { NotesLayer } from "@/components/learn/notes-layer"
 import { QuizRunner, type QuizResult } from "@/components/learn/quiz"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -32,6 +33,8 @@ export function LessonPlayer({ slug }: { slug: string }) {
   const [results, setResults] = useState<QuizResult[] | null>(null)
   // Time on the lesson, capped server-side; the ref avoids a re-render a second.
   const secondsRef = useRef(0)
+  // The notes layer anchors to text inside this element.
+  const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     secondsRef.current = 0
@@ -137,7 +140,10 @@ export function LessonPlayer({ slug }: { slug: string }) {
         <p className="text-muted-foreground text-sm">{data.lesson.summary}</p>
       </div>
 
-      <Markdown>{data.lesson.content}</Markdown>
+      <div ref={contentRef} className="relative">
+        <Markdown>{data.lesson.content}</Markdown>
+        <NotesLayer lessonId={slug} contentRef={contentRef} />
+      </div>
 
       {data.quiz.length > 0 && (
         <>
