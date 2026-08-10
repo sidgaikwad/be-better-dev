@@ -29,16 +29,21 @@ for crate in "${crates[@]}"; do
 
   tmp=$(mktemp -d)
   trap 'rm -rf "$tmp"' EXIT
-  cp -R "$crate" "$tmp/crate"
-  cp "$crate/solutions/lib.rs" "$tmp/crate/src/lib.rs"
-  # Stand the copy up as its own workspace so it builds outside this one.
-  printf '\n[workspace]\n' >> "$tmp/crate/Cargo.toml"
+  cp -R "$crate" "$tmp/$crate"
+  cp "$crate/solutions/lib.rs" "$tmp/$crate/src/lib.rs"
+  # Rebuild a workspace root around the copy so `edition.workspace = true` and
+  # friends still resolve. Reusing this file's own [workspace.package] keeps the
+  # copy building under exactly the settings the real crate gets.
+  {
+    printf '[workspace]\nresolver = "3"\nmembers = ["%s"]\n\n' "$crate"
+    sed -n '/^\[workspace.package\]/,$p' Cargo.toml
+  } > "$tmp/Cargo.toml"
 
-  if (cd "$tmp/crate" && cargo test -q >/dev/null 2>&1); then
+  if (cd "$tmp/$crate" && cargo test -q >/dev/null 2>&1); then
     echo "ok   $crate: stubs fail, solution passes"
   else
     echo "FAIL $crate: the reference solution does not pass its own suite"
-    (cd "$tmp/crate" && cargo test -q 2>&1 | tail -20)
+    (cd "$tmp/$crate" && cargo test -q 2>&1 | tail -20)
     fail=1
   fi
   rm -rf "$tmp"
