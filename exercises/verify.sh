@@ -55,7 +55,29 @@ for crate in "${crates[@]}"; do
     fail=1
     continue
   fi
+
+  # A whole-suite failure is not enough: one test can still pass against the
+  # stubs by accident (a todo!() panic satisfying a should_panic, say), and such
+  # a test asserts nothing about the learner's work. Check each test target on
+  # its own, since a target that fails to COMPILE is legitimately red and would
+  # otherwise abort the run before the others report.
+  green=""
+  for target in "$crate"/tests/*.rs; do
+    [ -e "$target" ] || continue
+    name=$(basename "$target" .rs)
+    out=$(cd "$stub_dir/$crate" && cargo test -q --test "$name" --no-fail-fast 2>&1) || true
+    # Skip targets that did not build; they are red by construction.
+    echo "$out" | grep -q "^error" && continue
+    passed=$(echo "$out" | grep -cE '^test .+ \.\.\. ok$' || true)
+    [ "$passed" -gt 0 ] && green="$green $name($passed)"
+  done
   rm -rf "$stub_dir"
+
+  if [ -n "$green" ]; then
+    echo "FAIL $crate: these stub tests already pass, so they assert nothing:$green"
+    fail=1
+    continue
+  fi
 
   sol_dir=$(stage "$crate" solution)
   if (cd "$sol_dir/$crate" && cargo test -q >/dev/null 2>&1); then
