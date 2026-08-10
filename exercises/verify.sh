@@ -12,9 +12,13 @@
 set -euo pipefail
 
 cd "$(dirname "$0")"
-crates=("${@:-}")
-if [ -z "${crates[0]}" ]; then
-  mapfile -t crates < <(find . -maxdepth 2 -name Cargo.toml -not -path ./Cargo.toml -exec dirname {} \; | sed 's|^\./||' | sort)
+# Default to every member crate. Built with a plain loop rather than mapfile,
+# which macOS's bash 3.2 does not have.
+crates=("$@")
+if [ ${#crates[@]} -eq 0 ]; then
+  while IFS= read -r dir; do
+    crates+=("$dir")
+  done < <(find . -maxdepth 2 -name Cargo.toml -not -path ./Cargo.toml -exec dirname {} \; | sed 's|^\./||' | sort)
 fi
 
 fail=0
