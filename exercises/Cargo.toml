@@ -15,6 +15,7 @@ members = [
   "unsafe-and-ffi",
   "pinning",
   "modules-api-design",
+  "tokio",
 ]
 
 # One crate per course section, named for its section slug. Each crate ships
