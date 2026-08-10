@@ -2,7 +2,7 @@ import { reachesConsole } from "@packages/auth/access"
 import { cookies, headers } from "next/headers"
 import { redirect } from "next/navigation"
 
-import { DashboardFooter, OrgSwitcher } from "@/components/dashboard/sidebar"
+import { DashboardFooter, DashboardNav, OrgSwitcher } from "@/components/dashboard/sidebar"
 import { SidebarShell } from "@/components/shell/sidebar-shell"
 import { auth } from "@/lib/auth"
 import { config } from "@/lib/config"
@@ -39,6 +39,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   return (
     <SidebarShell
       header={<OrgSwitcher />}
+      nav={<DashboardNav />}
       footer={
         <DashboardFooter user={session.user} canAccessConsole={reachesConsole(session.user)} />
       }

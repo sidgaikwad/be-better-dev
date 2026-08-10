@@ -85,7 +85,6 @@ export function Navbar() {
     { href: "/docs", label: "Documentation", feature: "docs" },
     { href: "/api/docs", label: "API Docs", external: true, feature: "apiDocs" },
     { href: "/blog", label: "Blog", feature: "blog" },
-    { href: "/hire", label: "Hire" },
   ]
   const navLinks = allNavLinks.filter((link) => !link.feature || features[link.feature])
 

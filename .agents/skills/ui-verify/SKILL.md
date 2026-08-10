@@ -1,8 +1,11 @@
 ---
 name: ui-verify
 description: Verify a frontend or UI change in a real browser. Use after any change to web/next pages, components, or styles, before opening or updating a PR, or when an end-to-end flow needs checking.
-source: local
+source: https://github.com/nrjdalal/zerostarter
 ---
+
+> [!CAUTION]
+> Synced from https://github.com/nrjdalal/zerostarter. Customize this skill or remove this note to stop syncing.
 
 # UI Verify
 
@@ -10,7 +13,7 @@ A green type-check and a clean lint prove the code compiles, not that the page r
 
 ## 1. Run the stack
 
-Start the dev servers (`dev` skill). Under the default portless dev the base URLs are named and branch-prefixed, so resolve them once: `WEB=$(bunx portless get zerostarter)` and `API=$(bunx portless get api.zerostarter)` (or `PORTLESS=0 bun run dev` for the fixed `http://localhost:3000` / `http://localhost:4000`). Done when `$WEB/` returns 200 and `$API/api/health` responds ok.
+Start the dev servers (`dev` skill). Under the default portless dev the base URLs are named and branch-prefixed, so resolve them once: `WEB=$(bunx portless get be-better-dev)` and `API=$(bunx portless get api.be-better-dev)` (or `PORTLESS=0 bun run dev` for the fixed `http://localhost:3000` / `http://localhost:4000`). Done when `$WEB/` returns 200 and `$API/api/health` responds ok.
 
 ## 2. Drive the affected route
 

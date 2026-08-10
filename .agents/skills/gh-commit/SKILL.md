@@ -1,8 +1,11 @@
 ---
 name: gh-commit
 description: Create atomic commits in the conventional format. Use when the user asks to commit or save changes.
-source: local
+source: https://github.com/nrjdalal/zerostarter
 ---
+
+> [!CAUTION]
+> Synced from https://github.com/nrjdalal/zerostarter. Customize this skill or remove this note to stop syncing.
 
 # Git Commit
 

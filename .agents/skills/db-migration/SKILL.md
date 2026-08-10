@@ -1,8 +1,11 @@
 ---
 name: db-migration
 description: Create and apply a Drizzle schema change. Use when adding or altering tables, columns, or indexes in @packages/db, or when asked for a migration.
-source: local
+source: https://github.com/nrjdalal/zerostarter
 ---
+
+> [!CAUTION]
+> Synced from https://github.com/nrjdalal/zerostarter. Customize this skill or remove this note to stop syncing.
 
 # Database Migration
 

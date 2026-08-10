@@ -1,8 +1,11 @@
 ---
 name: add-package
 description: Add a new shared workspace package under packages/*. Use when creating a new @packages/<name>, whether a bundled library other workspaces import or a build-only script package that runs during a build.
-source: local
+source: https://github.com/nrjdalal/zerostarter
 ---
+
+> [!CAUTION]
+> Synced from https://github.com/nrjdalal/zerostarter. Customize this skill or remove this note to stop syncing.
 
 # Add a Package
 

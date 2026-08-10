@@ -1,10 +1,20 @@
 "use client"
 
 import { features } from "@packages/config/site"
-import { RiAddLine, RiBookLine, RiBuildingLine } from "@remixicon/react"
+import {
+  RiAddLine,
+  RiBookLine,
+  RiBookOpenLine,
+  RiBuildingLine,
+  RiDashboardLine,
+  RiRefreshLine,
+  RiTrophyLine,
+  type RemixiconComponentType,
+} from "@remixicon/react"
 import { useForm } from "@tanstack/react-form"
 import { type User } from "better-auth/types"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { z } from "zod"
 
@@ -22,6 +32,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
+  SidebarGroup,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -31,7 +42,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { toast } from "@/components/ui/toast"
 import { authClient } from "@/lib/auth/client"
 import { config } from "@/lib/config"
-import { slugify } from "@/lib/utils"
+import { isActive, slugify } from "@/lib/utils"
 
 type Organization = {
   id: string
@@ -224,6 +235,46 @@ export function OrgSwitcher() {
         </DialogContent>
       </Dialog>
     </>
+  )
+}
+
+const learnNavItems: {
+  exact?: boolean
+  icon: RemixiconComponentType
+  title: string
+  url: string
+}[] = [
+  { icon: RiDashboardLine, title: "Dashboard", url: "/dashboard" },
+  { exact: false, icon: RiBookOpenLine, title: "Learn", url: "/learn" },
+  { icon: RiRefreshLine, title: "Review", url: "/review" },
+  { icon: RiTrophyLine, title: "Leaderboard", url: "/leaderboard" },
+]
+
+export function DashboardNav() {
+  const pathname = usePathname()
+  const { isMobile, setOpenMobile } = useSidebar()
+  const close = () => {
+    if (isMobile) setOpenMobile(false)
+  }
+
+  return (
+    <SidebarGroup>
+      <SidebarMenu className="space-y-0.5">
+        {learnNavItems.map((item) => (
+          <SidebarMenuItem key={item.url}>
+            <SidebarMenuButton
+              isActive={isActive(pathname, item.url, { exact: item.exact })}
+              tooltip={item.title}
+              className="data-active:font-normal"
+              render={<Link href={item.url} onClick={close} />}
+            >
+              <item.icon />
+              <span>{item.title}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        ))}
+      </SidebarMenu>
+    </SidebarGroup>
   )
 }
 

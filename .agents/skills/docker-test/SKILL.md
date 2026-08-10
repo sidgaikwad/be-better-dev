@@ -1,8 +1,11 @@
 ---
 name: docker-test
 description: Build and smoke-test the Docker images with docker compose. Use when touching a Dockerfile, the bundle build, or compose config.
-source: local
+source: https://github.com/nrjdalal/zerostarter
 ---
+
+> [!CAUTION]
+> Synced from https://github.com/nrjdalal/zerostarter. Customize this skill or remove this note to stop syncing.
 
 # Docker Testing
 
@@ -62,7 +65,7 @@ Forensics on an online container: `docker diff <name> | grep .bun/install/cache`
 The web build prunes the unused libc stack from standalone (libc is auto-detected at build; an alpine base means musl). Store-layout or dep-rename drift regresses it back into bloat silently, so assert after any web image build:
 
 ```bash
-docker run --rm --entrypoint sh zerostarter-web -c \
+docker run --rm --entrypoint sh be-better-dev-web -c \
   'find /app/node_modules \( -name "*linux-*-gnu*" -o -name "*sharp-linux-*" -o -name "*libvips-linux-*" \) ! -type l | grep . && echo "FAIL: glibc stack shipped" && exit 1; echo OK'
 ```
 

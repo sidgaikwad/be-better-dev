@@ -1,0 +1,19 @@
+[package]
+name = "tokio-exercises"
+version = "0.1.0"
+edition.workspace = true
+publish.workspace = true
+
+# The one section whose subject is a crate. The package cannot be called
+# "tokio" without colliding with the dependency, so the directory keeps the
+# section slug and the package takes the suffix: tests import tokio_exercises.
+[dependencies]
+tokio = { version = "1", features = [
+  "rt",
+  "rt-multi-thread",
+  "macros",
+  "sync",
+  "time",
+  "net",
+  "io-util",
+] }

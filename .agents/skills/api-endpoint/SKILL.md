@@ -1,8 +1,11 @@
 ---
 name: api-endpoint
 description: "Add a typed Hono API endpoint or WebSocket route: router, OpenAPI docs, validation envelope, and RPC client wiring. Use when adding or modifying routes in api/hono."
-source: local
+source: https://github.com/nrjdalal/zerostarter
 ---
+
+> [!CAUTION]
+> Synced from https://github.com/nrjdalal/zerostarter. Customize this skill or remove this note to stop syncing.
 
 # API Endpoint
 
@@ -72,7 +75,7 @@ export const exampleRouter = new Hono().post(
 `bun --hot` will NOT see a new file, so restart the stack (see the `dev` skill), then:
 
 ```bash
-WEB=$(bunx portless get zerostarter); API=$(bunx portless get api.zerostarter)
+WEB=$(bunx portless get be-better-dev); API=$(bunx portless get api.be-better-dev)
 curl -sS -X POST -H "Content-Type: application/json" -H "Origin: $WEB" \
   -d '{"email":"you@example.com"}' "$API/api/<name>"
 ```
@@ -118,7 +121,7 @@ Two rules the routes depend on and a reader will not guess:
 
 Both helpers are unit-tested from `tests/api/hono/src/lib/`. A test there can import a module that imports `zod`, but cannot import `zod` itself, so pin the parts that do not need it and leave a route's own extra fields to the route.
 
-On the web, `runBatched` in `web/next/src/lib/api/bulk.ts` sends the selection, splitting it at `MAX_BATCH` (from `@packages/config/console`, shared so both sides read one number) and folding each answer with `foldBatch`; `describeBulk` and `toastBulk` work off the resulting counts. See [API Conventions](https://zerostarter.dev/docs/manage/api-conventions) for the contract itself.
+On the web, `runBatched` in `web/next/src/lib/api/bulk.ts` sends the selection, splitting it at `MAX_BATCH` (from `@packages/config/console`, shared so both sides read one number) and folding each answer with `foldBatch`; `describeBulk` and `toastBulk` work off the resulting counts. See [API Conventions](https://be-better-dev.dev/docs/manage/api-conventions) for the contract itself.
 
 ## WebSocket routes
 

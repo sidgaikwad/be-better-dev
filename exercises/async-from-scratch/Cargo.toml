@@ -1,0 +1,5 @@
+[package]
+name = "async-from-scratch"
+version = "0.1.0"
+edition.workspace = true
+publish.workspace = true

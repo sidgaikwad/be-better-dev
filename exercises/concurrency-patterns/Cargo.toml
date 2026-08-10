@@ -1,0 +1,10 @@
+[package]
+name = "concurrency-patterns"
+version = "0.1.0"
+edition.workspace = true
+publish.workspace = true
+
+# The section is about tokio's synchronization primitives, so the runtime is
+# the subject rather than a convenience: channels, semaphores, watch, oneshot.
+[dependencies]
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros", "sync", "time"] }

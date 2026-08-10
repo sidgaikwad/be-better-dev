@@ -1,0 +1,32 @@
+[workspace]
+resolver = "3"
+members = [
+  "ownership-and-moves",
+  "borrowing-and-lifetimes",
+  "iterators-closures",
+  "structs-enums-matching",
+  "traits-and-generics",
+  "smart-pointers",
+  "collections-layouts",
+  "error-handling",
+  "threads-send-sync",
+  "macros",
+  "async-from-scratch",
+  "unsafe-and-ffi",
+  "pinning",
+  "modules-api-design",
+  "tokio",
+  "testing",
+  "streams-cancellation",
+  "concurrency-patterns",
+]
+
+# One crate per course section, named for its section slug. Each crate ships
+# stubbed functions in src/lib.rs and a red test suite in tests/ that defines
+# "done". Reference solutions live in each crate's solutions/lib.rs and never
+# take part in a normal build; verify.sh swaps them in to prove the suite is
+# solvable.
+
+[workspace.package]
+edition = "2024"
+publish = false

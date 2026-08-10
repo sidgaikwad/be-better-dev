@@ -1,8 +1,11 @@
 ---
 name: icebox
 description: "Icebox a raised-but-undecided concern instead of forcing a plan-or-dismiss call: record it with no verdict so the context survives. Use when a review, PR, audit, or eval surfaces something real-maybe that should not be scheduled or closed yet, or when the user says to icebox or park an item."
-source: local
+source: https://github.com/nrjdalal/zerostarter
 ---
+
+> [!CAUTION]
+> Synced from https://github.com/nrjdalal/zerostarter. Customize this skill or remove this note to stop syncing.
 
 # Icebox
 
