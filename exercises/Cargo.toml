@@ -10,6 +10,7 @@ members = [
   "collections-layouts",
   "error-handling",
   "threads-send-sync",
+  "macros",
 ]
 
 # One crate per course section, named for its section slug. Each crate ships
