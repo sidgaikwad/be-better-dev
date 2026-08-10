@@ -9,6 +9,7 @@ members = [
   "smart-pointers",
   "collections-layouts",
   "error-handling",
+  "threads-send-sync",
 ]
 
 # One crate per course section, named for its section slug. Each crate ships
