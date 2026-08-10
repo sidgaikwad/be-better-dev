@@ -38,9 +38,16 @@ The reference solution for every exercise lives in `<crate>/solutions/lib.rs`. R
 have something passing, not before: comparing a working answer against a better one teaches more
 than copying.
 
-`./verify.sh` proves the exercise set is honest. For each crate it asserts the stubs fail (a green
-stub means a test asserts nothing) and the reference solution passes (a red solution means the
-suite is wrong). Run it after editing any exercise:
+`./verify.sh` proves the exercise set is honest. For each crate it asserts three things:
+
+1. the shipped stubs **fail** the suite, since a green stub means a test asserts nothing
+2. **no individual test passes** against the stubs either, checked per test target, because a whole-
+   suite failure does not prove every test is red: a `todo!()` panic can satisfy a `should_panic` and
+   that test then asserts nothing about your work
+3. the reference solution **passes**, since a red solution means the suite itself is wrong
+
+Test targets that fail to compile are skipped in step 2; they are red by construction. Run it after
+editing any exercise:
 
 ```bash
 ./verify.sh                       # every crate
