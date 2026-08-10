@@ -32,6 +32,9 @@ cd exercises
 cargo test -p ownership-and-moves
 ```
 
+Eighteen crates cover every section of Parts 1 and 2: 242 stubs and 400 tests. `./verify.sh` proves
+each set is honest, that the stubs fail and the reference solution passes.
+
 See [exercises/README.md](exercises/README.md) for the workflow and how to add a section.
 
 ## How it works

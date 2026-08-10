@@ -47,6 +47,36 @@ suite is wrong). Run it after editing any exercise:
 ./verify.sh ownership-and-moves   # just one
 ```
 
+## The crates
+
+Eighteen crates, 242 stubs, 400 tests. One per course section in Parts 1 and 2.
+
+| Part | Crate                     | Covers                                                          |
+| ---- | ------------------------- | --------------------------------------------------------------- |
+| 1    | `ownership-and-moves`     | moves, Copy, Drop order, receivers, clone judgment              |
+| 1    | `borrowing-and-lifetimes` | shared vs exclusive, NLL, E0106, annotations, slices            |
+| 1    | `structs-enums-matching`  | receivers, sum types, Option, Result, exhaustiveness            |
+| 1    | `traits-and-generics`     | default methods, bounds, trait objects, From, newtypes          |
+| 1    | `collections-layouts`     | Vec ordering, UTF-8, entry API, borrowed lookups, BTreeMap      |
+| 1    | `smart-pointers`          | Box, Deref, Rc counts, Weak cycles, Arc, RefCell                |
+| 1    | `iterators-closures`      | Fn traits, a hand-written Iterator, adapters, collect to Result |
+| 1    | `error-handling`          | error enums, source chains, From at boundaries, status mapping  |
+| 1    | `modules-api-design`      | module tree, facades, visibility, newtypes, builders            |
+| 1    | `testing`                 | unit and doc tests, should_panic, fixtures, fakes, properties   |
+| 1    | `macros`                  | macro_rules, repetition, hygiene, when not to write one         |
+| 1    | `unsafe-and-ffi`          | raw pointers, sound wrappers, safety invariants, extern "C"     |
+| 2    | `threads-send-sync`       | spawn/join, Arc<Mutex>, channels, scoped threads, atomics       |
+| 2    | `async-from-scratch`      | Future by hand, poll counts, Waker, a block_on executor         |
+| 2    | `tokio`                   | tasks, Send bounds, spawn_blocking, channels, timeouts          |
+| 2    | `pinning`                 | self-referential moves, Box::pin, Unpin, polling through Pin    |
+| 2    | `streams-cancellation`    | Stream, select, timeout, drop-cancellation, cancel safety       |
+| 2    | `concurrency-patterns`    | worker pools, backpressure, actors, graceful shutdown           |
+
+Parts 3 and 4 have no crates here. Their work is building the newsletter service, writing
+Dockerfiles, and deploying, which a unit-test crate is the wrong container for. The
+`toolchain-and-cargo` section has none either: it teaches running commands and reading build
+output, so there is nothing to assert.
+
 ## Adding a section
 
 1. `mkdir exercises/<section-slug>` with `Cargo.toml`, `src/lib.rs`, `solutions/lib.rs`, `tests/`.
