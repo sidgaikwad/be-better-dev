@@ -16,6 +16,7 @@ members = [
   "pinning",
   "modules-api-design",
   "tokio",
+  "testing",
 ]
 
 # One crate per course section, named for its section slug. Each crate ships
