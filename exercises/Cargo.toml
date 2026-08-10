@@ -12,6 +12,7 @@ members = [
   "threads-send-sync",
   "macros",
   "async-from-scratch",
+  "unsafe-and-ffi",
 ]
 
 # One crate per course section, named for its section slug. Each crate ships
