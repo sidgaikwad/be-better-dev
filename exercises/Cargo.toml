@@ -8,6 +8,7 @@ members = [
   "traits-and-generics",
   "smart-pointers",
   "collections-layouts",
+  "error-handling",
 ]
 
 # One crate per course section, named for its section slug. Each crate ships
