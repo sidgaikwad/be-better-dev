@@ -6,6 +6,7 @@ members = [
   "iterators-closures",
   "structs-enums-matching",
   "traits-and-generics",
+  "smart-pointers",
 ]
 
 # One crate per course section, named for its section slug. Each crate ships
