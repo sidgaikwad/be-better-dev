@@ -13,6 +13,7 @@ members = [
   "macros",
   "async-from-scratch",
   "unsafe-and-ffi",
+  "pinning",
 ]
 
 # One crate per course section, named for its section slug. Each crate ships
