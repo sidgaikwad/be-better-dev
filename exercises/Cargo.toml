@@ -1,6 +1,11 @@
 [workspace]
 resolver = "3"
-members = ["ownership-and-moves", "borrowing-and-lifetimes", "iterators-closures"]
+members = [
+  "ownership-and-moves",
+  "borrowing-and-lifetimes",
+  "iterators-closures",
+  "structs-enums-matching",
+]
 
 # One crate per course section, named for its section slug. Each crate ships
 # stubbed functions in src/lib.rs and a red test suite in tests/ that defines
