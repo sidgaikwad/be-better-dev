@@ -21,6 +21,19 @@ Built on top of [ZeroStarter](https://zerostarter.dev).
 Every lesson closes with a predict-then-verify exercise and carries three quiz items. Answering
 them wrong is the point: misses re-enter the spaced-review queue sooner than hits.
 
+## Exercises
+
+Reading about the borrow checker and arguing with it are different skills, so the lessons have a
+hands-on half in `exercises/`: a Cargo workspace with one crate per section, stubbed functions, and
+a test suite that is red on purpose. The suite is the specification.
+
+```bash
+cd exercises
+cargo test -p ownership-and-moves
+```
+
+See [exercises/README.md](exercises/README.md) for the workflow and how to add a section.
+
 ## How it works
 
 Lessons unlock in order. Finishing one awards XP (with a bonus for a clean sweep), extends the
@@ -59,6 +72,7 @@ api/hono/          learn router, gamification rules
 web/next/          dashboard, course map, lesson player, review, leaderboard
 packages/db/       Drizzle schema for content and progress
 packages/scripts/  the curriculum and its seeder
+exercises/         the Rust workspace you actually write code in
 ```
 
 ## Credits

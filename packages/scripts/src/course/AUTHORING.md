@@ -79,3 +79,18 @@ export const traitsAndGenerics: SectionSeed = {
 - Do not run db commands, dev servers, or git.
 - Prefix every lesson slug with your section's assigned prefix so slugs stay globally unique.
 - `xp` may be omitted (defaults to 20); use 25 only for unusually heavy lessons.
+
+## Exercises
+
+Sections with hands-on work carry a crate in `exercises/<section-slug>/`, named for the section
+slug. Lessons and exercises are separate: nothing in the seed points at a crate, and a section is
+free to have lessons without exercises.
+
+- Stub each function with `todo!("hint")` and a doc comment naming the lesson it belongs to.
+- Write the tests first. They are the specification, and they should assert the lesson's claims.
+- Exercises that teach a rejected program ship it commented out under `// COMPILE ERROR:`, with the
+  real compiler error quoted above it.
+- Every crate needs `solutions/lib.rs`, a working reference with comments explaining the judgment
+  calls, not just the code.
+- `exercises/verify.sh <slug>` must print `ok`: it proves the stubs fail the suite and the solution
+  passes it. Add the slug to `members` in `exercises/Cargo.toml`.
