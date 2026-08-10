@@ -49,6 +49,9 @@ bundle/
 dist/
 vercel-bundle/
 
+# rust exercises
+exercises/**/target
+
 # custom files
 .github/scripts/*.d.ts
 .npmrc
