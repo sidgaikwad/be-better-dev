@@ -10,9 +10,14 @@ test suite that is **red on purpose**. The suite is the specification: when it p
 
 ```bash
 cd exercises
-cargo test -p ownership-and-moves          # see what is red
-cargo test -p ownership-and-moves one_owner   # one exercise at a time
+cargo test -p ownership-and-moves                     # the whole section
+cargo test -p ownership-and-moves --test drop_cleanup # one lesson at a time
 ```
+
+Tests are split one file per lesson, named for the lesson slug, and that split earns its keep:
+some exercises are type-level, so until you solve them their test file does not _compile_. A
+sibling that fails to compile does not stop you targeting the others with `--test`, so you are
+never blocked on one exercise to work the rest.
 
 Open `src/lib.rs`, find the `todo!()`, and make the tests pass. Each stub carries a doc comment
 naming the lesson it belongs to, so you can go back and reread.
