@@ -5,6 +5,7 @@ members = [
   "borrowing-and-lifetimes",
   "iterators-closures",
   "structs-enums-matching",
+  "traits-and-generics",
 ]
 
 # One crate per course section, named for its section slug. Each crate ships
