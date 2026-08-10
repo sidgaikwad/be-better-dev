@@ -17,6 +17,7 @@ members = [
   "modules-api-design",
   "tokio",
   "testing",
+  "streams-cancellation",
 ]
 
 # One crate per course section, named for its section slug. Each crate ships
