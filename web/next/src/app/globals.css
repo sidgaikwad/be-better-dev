@@ -156,3 +156,23 @@
 .shiki {
   @apply m-0;
 }
+
+/* Note highlights. ::highlight paints ranges registered through the CSS Custom
+   Highlight API, so anchored notes tint their text without the DOM being
+   rewritten under React. Browsers without the API simply show no tint; the
+   margin markers still work. */
+::highlight(note-amber) {
+  background-color: rgb(253 230 138 / 0.55);
+}
+::highlight(note-pink) {
+  background-color: rgb(251 207 232 / 0.55);
+}
+::highlight(note-green) {
+  background-color: rgb(187 247 208 / 0.55);
+}
+::highlight(note-blue) {
+  background-color: rgb(191 219 254 / 0.55);
+}
+::highlight(note-purple) {
+  background-color: rgb(233 213 255 / 0.55);
+}

@@ -7,6 +7,7 @@ import { authErrorResponses } from "@/lib/error"
 import { authMiddleware } from "@/middlewares"
 import { adminRouter } from "@/routers/admin"
 import { learnRouter } from "@/routers/learn"
+import { notesRouter } from "@/routers/notes"
 
 const sessionSchema = z.object({
   createdAt: z.string().meta({ format: "date-time", example: "2026-01-21T13:06:25.712Z" }),
@@ -122,3 +123,4 @@ const { data, error } = await unwrap(apiClient.v1.user.$get())`,
   )
   .route("/admin", adminRouter)
   .route("/learn", learnRouter)
+  .route("/notes", notesRouter)

@@ -1,18 +1,32 @@
 "use client"
 
-import { RiCheckboxCircleFill, RiLockLine, RiPlayCircleLine } from "@remixicon/react"
+import {
+  RiCheckboxCircleFill,
+  RiErrorWarningLine,
+  RiLockLine,
+  RiPlayCircleLine,
+} from "@remixicon/react"
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import { apiClient, unwrap } from "@/lib/api/client"
 import { cn } from "@/lib/utils"
 
 export function CourseMap() {
-  const { data, isPending } = useQuery({
+  const { data, isPending, error, refetch } = useQuery({
     queryKey: ["learn", "map"],
     queryFn: async () => {
       const { data, error } = await unwrap(apiClient.v1.learn.map.$get())
@@ -21,13 +35,38 @@ export function CourseMap() {
     },
   })
 
-  if (isPending || !data) {
+  if (isPending) {
     return (
       <div className="space-y-4">
         {Array.from({ length: 3 }).map((_, i) => (
           <Skeleton key={i} className="h-40" />
         ))}
       </div>
+    )
+  }
+
+  // Say what went wrong. Falling back to skeletons here makes a failed request
+  // look like a slow one, and it never resolves: an unseeded database answers
+  // 404 and the page would spin forever with no clue why.
+  if (error || !data) {
+    return (
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <RiErrorWarningLine />
+          </EmptyMedia>
+          <EmptyTitle>Could not load the course</EmptyTitle>
+          <EmptyDescription>
+            {error?.message ?? "The API returned no course."} If this database was just created, the
+            course content still needs seeding.
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Button variant="secondary" onClick={() => refetch()}>
+            Try again
+          </Button>
+        </EmptyContent>
+      </Empty>
     )
   }
 

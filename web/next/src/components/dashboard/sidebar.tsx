@@ -7,7 +7,10 @@ import {
   RiBookOpenLine,
   RiBuildingLine,
   RiDashboardLine,
+  RiFocus3Line,
+  RiHeadphoneLine,
   RiRefreshLine,
+  RiStickyNoteLine,
   RiTrophyLine,
   type RemixiconComponentType,
 } from "@remixicon/react"
@@ -245,8 +248,11 @@ const learnNavItems: {
   url: string
 }[] = [
   { icon: RiDashboardLine, title: "Dashboard", url: "/dashboard" },
+  { exact: false, icon: RiFocus3Line, title: "Focus", url: "/focus" },
   { exact: false, icon: RiBookOpenLine, title: "Learn", url: "/learn" },
+  { icon: RiHeadphoneLine, title: "Audiobook", url: "/audiobook" },
   { icon: RiRefreshLine, title: "Review", url: "/review" },
+  { exact: false, icon: RiStickyNoteLine, title: "Notes", url: "/notes" },
   { icon: RiTrophyLine, title: "Leaderboard", url: "/leaderboard" },
 ]
 

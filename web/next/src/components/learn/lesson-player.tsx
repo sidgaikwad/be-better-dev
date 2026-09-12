@@ -4,6 +4,7 @@ import {
   RiArrowLeftLine,
   RiArrowRightLine,
   RiCheckboxCircleFill,
+  RiErrorWarningLine,
   RiLockLine,
 } from "@remixicon/react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -11,7 +12,9 @@ import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 
 import { Markdown } from "@/components/learn/markdown"
+import { NotesLayer } from "@/components/learn/notes-layer"
 import { QuizRunner, type QuizResult } from "@/components/learn/quiz"
+import { ReadAloud } from "@/components/learn/read-aloud"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -32,6 +35,8 @@ export function LessonPlayer({ slug }: { slug: string }) {
   const [results, setResults] = useState<QuizResult[] | null>(null)
   // Time on the lesson, capped server-side; the ref avoids a re-render a second.
   const secondsRef = useRef(0)
+  // The notes layer anchors to text inside this element.
+  const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     secondsRef.current = 0
@@ -42,7 +47,7 @@ export function LessonPlayer({ slug }: { slug: string }) {
     return () => clearInterval(interval)
   }, [slug])
 
-  const { data, isPending } = useQuery({
+  const { data, isPending, error, refetch } = useQuery({
     queryKey: ["learn", "lesson", slug],
     queryFn: async () => {
       const { data, error } = await unwrap(
@@ -89,12 +94,33 @@ export function LessonPlayer({ slug }: { slug: string }) {
     },
   })
 
-  if (isPending || !data) {
+  if (isPending) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-8 w-2/3" />
         <Skeleton className="h-64" />
       </div>
+    )
+  }
+
+  // Show the failure rather than skeletons that never resolve; see the same
+  // note in course-map.
+  if (error || !data) {
+    return (
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <RiErrorWarningLine />
+          </EmptyMedia>
+          <EmptyTitle>Could not load this lesson</EmptyTitle>
+          <EmptyDescription>{error?.message ?? "The API returned no lesson."}</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Button variant="secondary" onClick={() => refetch()}>
+            Try again
+          </Button>
+        </EmptyContent>
+      </Empty>
     )
   }
 
@@ -137,7 +163,16 @@ export function LessonPlayer({ slug }: { slug: string }) {
         <p className="text-muted-foreground text-sm">{data.lesson.summary}</p>
       </div>
 
-      <Markdown>{data.lesson.content}</Markdown>
+      <ReadAloud
+        content={data.lesson.content}
+        title={data.lesson.title}
+        summary={data.lesson.summary}
+      />
+
+      <div ref={contentRef} className="relative">
+        <Markdown>{data.lesson.content}</Markdown>
+        <NotesLayer lessonId={slug} contentRef={contentRef} />
+      </div>
 
       {data.quiz.length > 0 && (
         <>
