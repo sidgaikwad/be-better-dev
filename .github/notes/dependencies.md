@@ -42,6 +42,27 @@ delete it when the override goes. See the `audit` skill for the procedure.
 - **Risk**: low. Both paths are dev-only tooling and neither resolves URIs from untrusted input.
 - **Exit criteria**: remove once `shadcn` and `ajv` resolve `fast-uri >= 3.1.6` unaided.
 
+### hono → ^4.13.7
+
+- **Advisory**: seven advisories against `hono < 4.12.34`, six moderate and one low. The one that
+  is actually reachable here is
+  [GHSA-8j4g-w8fx-2239](https://github.com/advisories/GHSA-8j4g-w8fx-2239), ReDoS in the CORS
+  middleware via `Access-Control-Request-Headers`, which matters because `api/hono/src/index.ts`
+  mounts `cors()` on `*`. The rest need entry points this repository does not use: `memo()` and
+  `hono/jsx` ([GHSA-f23p-vx2j-j53r](https://github.com/advisories/GHSA-f23p-vx2j-j53r), the
+  cross-user SSR disclosure), `toSSG()`, the Proxy Helper, and the Language middleware.
+- **Why an override**: the catalog bump to `^4.13.7` lifts every workspace copy, which is what
+  fixes the reachable one. It does not reach the copy under
+  `shadcn › @modelcontextprotocol/sdk`, which stayed pinned at `4.12.32`. That is a stale lockfile
+  pin rather than a version conflict: the SDK declares `hono ^4.11.4` and has done through its
+  latest release, so `4.13.7` is inside the range it already accepts and bun simply had no reason
+  to move off a version that still satisfied it. Same trap as the js-yaml entry above, and the
+  global override is likewise the only rung that moves it.
+- **Risk**: low. The pin agrees with the catalog rather than fighting it, so every consumer lands
+  on one version, and the only copy it forces is under `shadcn`, dev-only component sync tooling
+  that never serves a request.
+- **Exit criteria**: remove once `@modelcontextprotocol/sdk` resolves `hono >= 4.12.34` on its own.
+
 ### postcss → ^8.5.26
 
 - **Advisory**: [GHSA-2v37-7h3g-55p8](https://github.com/advisories/GHSA-2v37-7h3g-55p8), high,
@@ -63,8 +84,8 @@ Inherited from the ZeroStarter scaffold with no advisory or rationale recorded, 
 carried the exit criteria "drop it, reinstall, and delete this block if the audit stays clean".
 Doing exactly that shows the pin was inert: the only requester declares `brace-expansion ^5.0.5`
 and already resolves to `5.0.9` unaided, so removing the override left every resolution in
-`bun.lock` untouched and the audit clean at every severity, not just the `high` gate. Kept here as
-the record of why it went rather than why it stayed.
+`bun.lock` untouched and `brace-expansion` carrying no advisory at any severity, not just under
+the `high` gate. Kept here as the record of why it went rather than why it stayed.
 
 ### sharp → ^0.35.3, removed
 
