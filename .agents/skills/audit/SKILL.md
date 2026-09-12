@@ -37,7 +37,8 @@ Then `bun i` and prove nothing broke. Done when `bun run check-types && bun run 
 
 - **`bun update <pkg>` corrupts the manifest.** It rewrites root `package.json`, replacing a `catalog:` reference with a literal range and adding the package as a direct dependency, and it still does not lift the nested copy you aimed it at. Hand-edit the `catalog:` entry and run plain `bun i`.
 - **There are no nested overrides.** `"overrides": { "<parent>": { "<pkg>": "..." } }` earns `warn: Bun currently does not support nested "overrides"` and is ignored, so a pin cannot be scoped to one parent. Every entry is global, which is how a pin quietly drags an unrelated direct dependency onto an old major.
-- **Most advisories are stale lockfile pins, not version conflicts.** When the parent's declared range already admits the patched build (`ajv` asks for `fast-uri ^3.0.1`, `express` for `qs ^6.14.0`), no parent bump raises the floor, and bun keeps the vulnerable version because it still satisfies. Rung 3 is then the only rung that moves it, and it is low risk precisely because the patched version sits inside the range the parent already declares. Put that reasoning in **Why an override**.
+- **Most advisories are stale lockfile pins, not version conflicts.** When the parent's declared range already admits the patched build (`ajv` asks for `fast-uri ^3.0.1`, `express` for `qs ^6.14.0`), no parent bump raises the floor, and bun keeps the vulnerable version because it still satisfies. What lifts it is re-resolving that entry, not a new constraint, so reach for the lockfile before the manifest. Rung 3 re-resolves it too, but the pin outlives the lift: once `bun.lock` records the patched build every consumer already accepted, the entry goes on applying globally while holding nothing up. Keep rung 3 for a range no parent release will ever satisfy (`@esbuild-kit/core-utils`, permanently at `esbuild ~0.18.20`), and when you use it, put that reasoning in **Why an override**.
+- **Re-resolve a stale entry by replacing it, not by deleting it.** Overwrite its `bun.lock` line with the patched version and that version's integrity hash, then run `bun i`; the diff stays on that one package. Deleting the line instead drops bun back to resolving the whole tree, which pulls hundreds of unrelated packages to their newest in-range version in the same commit. And deleting `bun.lock` on its own does not force a fresh resolve at all: bun rebuilds it from `node_modules` and reports `no changes`, so a genuine from-scratch check has to remove both.
 
 Bun's advisory paths name workspace ancestors, not the parent that pins the version, so resolve the real chain before picking a rung:
 
@@ -51,6 +52,20 @@ Then check each parent on the registry. A parent already on its latest release w
 ## 3. Record every override
 
 Every entry in root `overrides` needs a matching block in `.github/notes/dependencies.md`, in the file's existing shape: one `### <package> → <version>` under `## Active overrides`, carrying **Advisory** (link, severity, affected range), **Why an override** (why an update or parent bump can't lift the tree), **Risk**, and **Exit criteria** (when to remove it). Delete a block when its override goes. Done when every override has a block and no block outlives its override.
+
+### Retire a pin that stopped working
+
+A pin that performed a one-time lift stops doing work the moment `bun.lock` records the patched build, because every consumer's declared range already admitted that build. What is left is scaffolding: still global, still able to drag an unrelated dependency onto an old major. So audit the entries you did not just add:
+
+```bash
+# remove the entry from root `overrides`, then
+bun i && bun audit                     # the version holds, and no advisory at any severity
+rm -rf bun.lock node_modules && bun i  # and it still holds when resolved from scratch
+```
+
+If the version holds both ways the pin is inert. Drop it and move its block to `## Removed overrides`, keeping the record of why it went rather than why it stayed.
+
+This is also the test an **Exit criteria** should encode. One that names a parent's declared range ("remove once `express` declares `qs >= 6.16.0`") records why the pin was needed, not whether it is still holding anything up, so it can sit unmet long after the pin stops mattering.
 
 ## 4. Ship
 
