@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.0.2
+
+[compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.1...v0.0.2)
+
+### 🚀 Enhancements
+
+- **notes:** Add selection-triggered sticky notes ([18fcc79](https://github.com/sidgaikwad/be-better-dev/commit/18fcc79))
+- **learn:** Read lessons aloud and add an audiobook ([#3](https://github.com/sidgaikwad/be-better-dev/pull/3))
+- **focus:** Learn the syllabus one step at a time ([#4](https://github.com/sidgaikwad/be-better-dev/pull/4))
+
+### 🩹 Fixes
+
+- **learn:** Show why the course or a lesson failed to load ([15b7869](https://github.com/sidgaikwad/be-better-dev/commit/15b7869))
+
+### ❤️ Contributors
+
+- Siddharth Gaikwad @sidgaikwad
+- Siddharth Gaikwad @sidgaikwad
+
 ## v0.0.1
 
 ### 🚀 Enhancements
