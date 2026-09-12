@@ -88,7 +88,7 @@ export function QuizRunner({
                       {isWrongPick && (
                         <RiCloseCircleFill className="text-destructive mt-0.5 size-4 shrink-0" />
                       )}
-                      <Markdown className="min-w-0 [&_p]:my-0">{option}</Markdown>
+                      <Markdown className="min-w-0 leading-5 [&_p]:my-0">{option}</Markdown>
                     </button>
                   )
                 })}
