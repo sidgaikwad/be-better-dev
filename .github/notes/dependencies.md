@@ -18,9 +18,13 @@ delete it when the override goes. See the `audit` skill for the procedure.
   declares, so this is a lockfile lift rather than a version the parent rejects. `bun update`
   will not perform that lift on its own, because the pinned `4.3.1` already satisfies the range.
 - **Risk**: low. Both consumers are dev-only tooling (commit linting, component sync) and neither
-  parses attacker-supplied YAML; nothing here ships to production. Note the override is global, so
-  it also pins the root's own `js-yaml` dependency, which the catalog puts at `^5.2.3`. Nothing in
-  this repository imports `js-yaml`, so that entry is vestigial and the pin costs nothing.
+  parses attacker-supplied YAML; nothing here ships to production. The pin is global, because bun
+  does not support nested overrides, but `cosmiconfig` is now the only thing in the tree that
+  resolves `js-yaml` at all, so the pin has exactly one target. The root package used to declare
+  `js-yaml` as a direct dependency (catalog `^5.2.3`) which this override then dragged onto the 4.x
+  line; that dependency was vestigial, since nothing imports it and frontmatter is parsed with
+  `Bun.YAML.parse`, so it and its catalog entry were removed rather than left to read as a
+  contradiction.
 - **Exit criteria**: remove once `@commitlint/cli` and `shadcn` resolve `cosmiconfig >= 10.0.1`,
   or `js-yaml >= 4.3.2`, on their own.
 
@@ -42,6 +46,27 @@ delete it when the override goes. See the `audit` skill for the procedure.
 - **Risk**: low. Both paths are dev-only tooling and neither resolves URIs from untrusted input.
 - **Exit criteria**: remove once `shadcn` and `ajv` resolve `fast-uri >= 3.1.6` unaided.
 
+### hono → ^4.13.7
+
+- **Advisory**: seven advisories against `hono < 4.12.34`, six moderate and one low. The one that
+  is actually reachable here is
+  [GHSA-8j4g-w8fx-2239](https://github.com/advisories/GHSA-8j4g-w8fx-2239), ReDoS in the CORS
+  middleware via `Access-Control-Request-Headers`, which matters because `api/hono/src/index.ts`
+  mounts `cors()` on `*`. The rest need entry points this repository does not use: `memo()` and
+  `hono/jsx` ([GHSA-f23p-vx2j-j53r](https://github.com/advisories/GHSA-f23p-vx2j-j53r), the
+  cross-user SSR disclosure), `toSSG()`, the Proxy Helper, and the Language middleware.
+- **Why an override**: the catalog bump to `^4.13.7` lifts every workspace copy, which is what
+  fixes the reachable one. It does not reach the copy under
+  `shadcn › @modelcontextprotocol/sdk`, which stayed pinned at `4.12.32`. That is a stale lockfile
+  pin rather than a version conflict: the SDK declares `hono ^4.11.4` and has done through its
+  latest release, so `4.13.7` is inside the range it already accepts and bun simply had no reason
+  to move off a version that still satisfied it. Same trap as the js-yaml entry above, and the
+  global override is likewise the only rung that moves it.
+- **Risk**: low. The pin agrees with the catalog rather than fighting it, so every consumer lands
+  on one version, and the only copy it forces is under `shadcn`, dev-only component sync tooling
+  that never serves a request.
+- **Exit criteria**: remove once `@modelcontextprotocol/sdk` resolves `hono >= 4.12.34` on its own.
+
 ### postcss → ^8.5.26
 
 - **Advisory**: [GHSA-2v37-7h3g-55p8](https://github.com/advisories/GHSA-2v37-7h3g-55p8), high,
@@ -55,15 +80,16 @@ delete it when the override goes. See the `audit` skill for the procedure.
 - **Risk**: low. Patch-level move inside the range every consumer already accepts.
 - **Exit criteria**: remove once every parent resolves `postcss >= 8.5.26` unaided.
 
-### brace-expansion → ^5.0.9
-
-- **Advisory**: not recorded.
-- **Why an override**: inherited from the ZeroStarter scaffold; the upstream rationale was not
-  carried over when this repository was re-baselined.
-- **Risk**: unknown, presumed low. Resolves clean under `bun audit --audit-level high`.
-- **Exit criteria**: drop it, reinstall, and delete this block if the audit stays clean.
-
 ## Removed overrides
+
+### brace-expansion → ^5.0.9, removed
+
+Inherited from the ZeroStarter scaffold with no advisory or rationale recorded, and its block
+carried the exit criteria "drop it, reinstall, and delete this block if the audit stays clean".
+Doing exactly that shows the pin was inert: the only requester declares `brace-expansion ^5.0.5`
+and already resolves to `5.0.9` unaided, so removing the override left every resolution in
+`bun.lock` untouched and `brace-expansion` carrying no advisory at any severity, not just under
+the `high` gate. Kept here as the record of why it went rather than why it stayed.
 
 ### sharp → ^0.35.3, removed
 

@@ -1,6 +1,6 @@
 {
   "name": "be-better-dev",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": true,
   "workspaces": [
     "api/*",
@@ -30,7 +30,6 @@
     "test": "if [ -d tests ]; then turbo run build --filter='./packages/*' && bun packages/scripts/src/data-table-metrics.ts && bun test tests; fi"
   },
   "dependencies": {
-    "js-yaml": "catalog:",
     "nanoid": "catalog:"
   },
   "devDependencies": {
@@ -54,8 +53,8 @@
     "turbo": "catalog:"
   },
   "overrides": {
-    "brace-expansion": "^5.0.9",
     "fast-uri": "^3.1.7",
+    "hono": "^4.13.7",
     "js-yaml": "^4.3.2",
     "postcss": "^8.5.26"
   },
@@ -117,11 +116,10 @@
     "fumadocs-mdx": "^15.2.1",
     "fumadocs-ui": "^16.14.0",
     "globby": "^16.2.2",
-    "hono": "^4.12.31",
+    "hono": "^4.13.7",
     "hono-openapi": "^1.3.1",
     "hono-rate-limiter": "^0.5.3",
     "input-otp": "^1.4.2",
-    "js-yaml": "^5.2.3",
     "lefthook": "^2.1.10",
     "lint-staged": "^17.1.0",
     "nanoid": "^6.0.0",
