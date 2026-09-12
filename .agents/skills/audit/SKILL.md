@@ -17,7 +17,7 @@ The pre-push hook runs `bun audit --audit-level high`, on `canary` only (`leftho
 bun audit --audit-level high
 ```
 
-Done when the output is clean, or you have the list of high advisories to clear.
+Done when the output is clean, or you have the list of high advisories to clear. The hook and CI gate on `--audit-level high`; plain `bun audit` also lists moderate and low, worth a look before calling a tree clean.
 
 ## 2. Fix on the highest rung that works
 
@@ -32,6 +32,21 @@ Fix each advisory on the highest rung that lifts the whole tree; drop a rung onl
    ```
 
 Then `bun i` and prove nothing broke. Done when `bun run check-types && bun run build` pass and `bun audit --audit-level high` reports no high advisories.
+
+### Bun specifics that decide the rung
+
+- **`bun update <pkg>` corrupts the manifest.** It rewrites root `package.json`, replacing a `catalog:` reference with a literal range and adding the package as a direct dependency, and it still does not lift the nested copy you aimed it at. Hand-edit the `catalog:` entry and run plain `bun i`.
+- **There are no nested overrides.** `"overrides": { "<parent>": { "<pkg>": "..." } }` earns `warn: Bun currently does not support nested "overrides"` and is ignored, so a pin cannot be scoped to one parent. Every entry is global, which is how a pin quietly drags an unrelated direct dependency onto an old major.
+- **Most advisories are stale lockfile pins, not version conflicts.** When the parent's declared range already admits the patched build (`ajv` asks for `fast-uri ^3.0.1`, `express` for `qs ^6.14.0`), no parent bump raises the floor, and bun keeps the vulnerable version because it still satisfies. Rung 3 is then the only rung that moves it, and it is low risk precisely because the patched version sits inside the range the parent already declares. Put that reasoning in **Why an override**.
+
+Bun's advisory paths name workspace ancestors, not the parent that pins the version, so resolve the real chain before picking a rung:
+
+```bash
+grep -oE '"[^"]*<pkg>[^"]*": \["<pkg>@[0-9][^"]*' bun.lock   # every copy, and the version it resolved to
+grep -oE '"<pkg>": "[^"]*"' bun.lock                          # every range that asks for it
+```
+
+Then check each parent on the registry. A parent already on its latest release whose range still admits the vulnerable build cannot be bumped into a fix, and one pinned by a deprecated final release (`@esbuild-kit/core-utils`, permanently at `esbuild ~0.18.20`) never will be. Where no single version satisfies every declared range, a global pin has to force someone off theirs: take the line that keeps the consumers that matter inside their ranges, and exercise the ones you force rather than assuming they cope.
 
 ## 3. Record every override
 
