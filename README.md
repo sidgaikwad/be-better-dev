@@ -43,6 +43,21 @@ Lessons unlock in order. Finishing one awards XP (with a bonus for a clean sweep
 daily streak, fills a square on the activity heatmap, and can unlock a badge. Finishing every
 lesson in a section earns that section's badge.
 
+## Focus mode
+
+`/focus` is the same course arranged for anyone who struggles with a long page and a long list:
+ADHD, a bad week, or a train.
+
+The start screen shows one lesson, the one that is actually next, and one button. Lessons unlock in
+order, so choosing between 256 of them is a decision nobody needs to win before studying. Inside a
+lesson, `/focus/<slug>` delivers it in four to nine steps of about a hundred words, one on screen at
+a time, with a count that says how much is left and the quiz as the final step. A block of 5, 10,
+15, or 25 minutes runs on a visible clock and ends in a short break that takes over the screen
+rather than asking politely from a corner. Type is larger by default and the size is remembered.
+
+It is a different door into the same room, not a second copy of the course: same lessons, same
+quiz, same XP, same unlock order, and a link back to the full page on every screen.
+
 ## Listening
 
 Every lesson has a read-aloud bar, and `/audiobook` plays the whole course straight through,
@@ -83,7 +98,7 @@ public URLs (`/learn/<slug>`); renaming one orphans the progress that points at 
 
 ```
 api/hono/          learn router, gamification rules
-web/next/          dashboard, course map, lesson player, audiobook, review, leaderboard
+web/next/          dashboard, course map, lesson player, focus mode, audiobook, review, leaderboard
 packages/db/       Drizzle schema for content and progress
 packages/scripts/  the curriculum and its seeder
 exercises/         the Rust workspace you actually write code in
