@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.5
+
+[compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.4...v0.0.5)
+
+### 🩹 Fixes
+
+- **course:** Pair the inline compiler error spans in two trait lessons ([#9](https://github.com/sidgaikwad/be-better-dev/pull/9))
+
+### ❤️ Contributors
+
+- Siddharth Gaikwad @sidgaikwad
+
 ## v0.0.4
 
 [compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.3...v0.0.4)
