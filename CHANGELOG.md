@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.0.6
+
+[compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.5...v0.0.6)
+
+### 🩹 Fixes
+
+- **deps:** Pin esbuild past the unreachable dev-server advisory ([#14](https://github.com/sidgaikwad/be-better-dev/pull/14))
+- **learn:** Render quiz options as markdown ([#13](https://github.com/sidgaikwad/be-better-dev/pull/13))
+
+### ❤️ Contributors
+
+- Siddharth Gaikwad @sidgaikwad
+
 ## v0.0.5
 
 [compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.4...v0.0.5)

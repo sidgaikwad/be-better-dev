@@ -5,68 +5,6 @@ delete it when the override goes. See the `audit` skill for the procedure.
 
 ## Active overrides
 
-### js-yaml → ^4.3.2
-
-- **Advisory**: [GHSA-2883-xcg3-v3hh](https://github.com/advisories/GHSA-2883-xcg3-v3hh), high.
-  `maxTotalMergeKeys` does not limit CPU use for empty merge sources. Affects `>=4.0.0 <4.3.2`.
-  Supersedes [GHSA-5p4m-2wfm-xmqj](https://github.com/advisories/GHSA-5p4m-2wfm-xmqj), the
-  `!!omap` advisory this override was originally opened for.
-- **Why an override**: the only consumer is `cosmiconfig@9`, reached through `@commitlint/cli`
-  and `shadcn`. `cosmiconfig@10.0.1` moved to `js-yaml ^5.4.1` and would lift this on a higher
-  rung, but neither parent has adopted it: `@commitlint/load@21.2.2` and `shadcn@4.21.0` both
-  still declare `cosmiconfig ^9`. `4.3.2` sits inside the `^4.1.0` range cosmiconfig already
-  declares, so this is a lockfile lift rather than a version the parent rejects. `bun update`
-  will not perform that lift on its own, because the pinned `4.3.1` already satisfies the range.
-- **Risk**: low. Both consumers are dev-only tooling (commit linting, component sync) and neither
-  parses attacker-supplied YAML; nothing here ships to production. The pin is global, because bun
-  does not support nested overrides, but `cosmiconfig` is now the only thing in the tree that
-  resolves `js-yaml` at all, so the pin has exactly one target. The root package used to declare
-  `js-yaml` as a direct dependency (catalog `^5.2.3`) which this override then dragged onto the 4.x
-  line; that dependency was vestigial, since nothing imports it and frontmatter is parsed with
-  `Bun.YAML.parse`, so it and its catalog entry were removed rather than left to read as a
-  contradiction.
-- **Exit criteria**: remove once `@commitlint/cli` and `shadcn` resolve `cosmiconfig >= 10.0.1`,
-  or `js-yaml >= 4.3.2`, on their own.
-
-### fast-uri → ^3.1.7
-
-- **Advisory**: four high advisories against `>=3.1.3 <3.1.6`, all reachable through URI parsing:
-  [GHSA-5jgf-p345-68v8](https://github.com/advisories/GHSA-5jgf-p345-68v8) (host confusion via
-  skipped IDN canonicalization on scheme-relative references),
-  [GHSA-f65p-4m7j-42xc](https://github.com/advisories/GHSA-f65p-4m7j-42xc) (SSRF via malformed
-  IPv6 normalization), [GHSA-fph4-wmhf-6fwf](https://github.com/advisories/GHSA-fph4-wmhf-6fwf)
-  (SSRF via repeated hostname percent-decoding), and
-  [GHSA-jqff-g426-hqxp](https://github.com/advisories/GHSA-jqff-g426-hqxp) (host confusion via
-  percent-encoded scheme normalization).
-- **Why an override**: fast-uri is never a direct dependency. It arrives under `shadcn`, and under
-  `ajv` by way of `@commitlint/cli` → `@commitlint/load` → `@commitlint/config-validator`. There
-  is no catalog entry to bump and no parent release that moves off the affected range, so the pin
-  is the only rung available. This override already existed at `^3.1.5`, which the advisories
-  later grew to cover; only the floor moved.
-- **Risk**: low. Both paths are dev-only tooling and neither resolves URIs from untrusted input.
-- **Exit criteria**: remove once `shadcn` and `ajv` resolve `fast-uri >= 3.1.6` unaided.
-
-### hono → ^4.13.7
-
-- **Advisory**: seven advisories against `hono < 4.12.34`, six moderate and one low. The one that
-  is actually reachable here is
-  [GHSA-8j4g-w8fx-2239](https://github.com/advisories/GHSA-8j4g-w8fx-2239), ReDoS in the CORS
-  middleware via `Access-Control-Request-Headers`, which matters because `api/hono/src/index.ts`
-  mounts `cors()` on `*`. The rest need entry points this repository does not use: `memo()` and
-  `hono/jsx` ([GHSA-f23p-vx2j-j53r](https://github.com/advisories/GHSA-f23p-vx2j-j53r), the
-  cross-user SSR disclosure), `toSSG()`, the Proxy Helper, and the Language middleware.
-- **Why an override**: the catalog bump to `^4.13.7` lifts every workspace copy, which is what
-  fixes the reachable one. It does not reach the copy under
-  `shadcn › @modelcontextprotocol/sdk`, which stayed pinned at `4.12.32`. That is a stale lockfile
-  pin rather than a version conflict: the SDK declares `hono ^4.11.4` and has done through its
-  latest release, so `4.13.7` is inside the range it already accepts and bun simply had no reason
-  to move off a version that still satisfied it. Same trap as the js-yaml entry above, and the
-  global override is likewise the only rung that moves it.
-- **Risk**: low. The pin agrees with the catalog rather than fighting it, so every consumer lands
-  on one version, and the only copy it forces is under `shadcn`, dev-only component sync tooling
-  that never serves a request.
-- **Exit criteria**: remove once `@modelcontextprotocol/sdk` resolves `hono >= 4.12.34` on its own.
-
 ### postcss → ^8.5.26
 
 - **Advisory**: [GHSA-2v37-7h3g-55p8](https://github.com/advisories/GHSA-2v37-7h3g-55p8), high,
@@ -107,6 +45,56 @@ delete it when the override goes. See the `audit` skill for the procedure.
   dependency it already carries, which would take the last `~0.18.20` pin out of the tree.
 
 ## Removed overrides
+
+### qs → ^6.16.0, removed
+
+Added to lift a stale `qs@6.15.3` reached through `@web/next` → `shadcn` →
+`@modelcontextprotocol/sdk` → `express` → `body-parser`. The pin did that job, and recording
+`6.16.0` in `bun.lock` is what made it inert: removing it leaves `6.16.0` both against the committed
+lockfile and on a resolve from an empty `bun.lock` and `node_modules`, with no qs advisory at any
+severity rather than only under the `high` gate. Only two ranges ask for qs, `^6.14.0` from express
+and `^6.15.2` from body-parser, and both already admit the patched build, so nothing now in the tree
+pulls it back down. Its stated exit criteria, that express or body-parser declare `qs >= 6.16.0`,
+is not met and is not the right test: it asks whether a parent would raise the floor, when what
+decides an override's fate is whether it is still holding anything up. Note this drops the forward
+ratchet a global pin gives you, and these advisories are moderate, so a future regression would not
+trip the `--audit-level high` gate; the chain is dev-only component-sync tooling whose Express
+server this repository never starts, which is what makes that acceptable. Kept here as the record
+of why it went rather than why it stayed.
+
+### js-yaml → ^4.3.2, removed
+
+Held [GHSA-2883-xcg3-v3hh](https://github.com/advisories/GHSA-2883-xcg3-v3hh), high, off
+`cosmiconfig@9` under `@commitlint/cli` and `shadcn`. Its exit criteria allowed either parent
+adopting `cosmiconfig >= 10.0.1` or the tree resolving `js-yaml >= 4.3.2` unaided, and the second
+is now true: `cosmiconfig` declares `js-yaml ^4.1.0`, and that range resolves to `4.3.2` on its
+own. Removing the pin leaves `4.3.2` both against the committed lockfile, where the only change is
+the declaration line itself, and on a resolve from an empty `bun.lock` and `node_modules`, with no
+js-yaml advisory at any severity. Kept here as the record of why it went rather than why it stayed.
+
+### fast-uri → ^3.1.7, removed
+
+Held four high advisories against `>=3.1.3 <3.1.6` off `shadcn` and off `ajv`, reached through
+`@commitlint/cli` → `@commitlint/load` → `@commitlint/config-validator`. Its exit criteria, that
+`shadcn` and `ajv` resolve `fast-uri >= 3.1.6` unaided, is now met: the only range left in the tree
+is `ajv`'s `^3.0.1`, which resolves to `3.1.7` on its own. Removing the pin leaves `3.1.7` both
+against the committed lockfile, where the only change is the declaration line itself, and on a
+resolve from an empty `bun.lock` and `node_modules`, with no fast-uri advisory at any severity.
+The block used to call the pin "the only rung available", which was true of a parent bump but not
+of re-resolving the entry. Kept here as the record of why it went rather than why it stayed.
+
+### hono → ^4.13.7, removed
+
+Pinned to reach the copy under `shadcn › @modelcontextprotocol/sdk`, which the catalog bump to
+`^4.13.7` left at `4.12.32`, and carried the exit criteria "remove once `@modelcontextprotocol/sdk`
+resolves `hono >= 4.12.34` on its own". It now does. That `4.12.32` was a stale lockfile entry
+frozen from when the catalog still sat at `^4.12.31`, not a range the SDK rejects, and nothing in
+the tree caps hono below the fix line: every declared range is open-ended upward (`^4`, `^4.10.8`,
+`^4.11.2`, `^4.11.4` from the SDK itself, `^4.12.5`, `>=4.11.2`, and the catalog's own `^4.13.7`).
+Dropping the pin leaves a single `hono@4.13.7` both against the committed lockfile and on a resolve
+from an empty `bun.lock` and `node_modules`, with no hono advisory at any severity rather than only
+under the `high` gate. The catalog bump alone lifts the whole tree, so the override sat a rung below
+what the job needed. Kept here as the record of why it went rather than why it stayed.
 
 ### brace-expansion → ^5.0.9, removed
 
