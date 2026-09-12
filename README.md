@@ -43,6 +43,17 @@ Lessons unlock in order. Finishing one awards XP (with a bonus for a clean sweep
 daily streak, fills a square on the activity heatmap, and can unlock a badge. Finishing every
 lesson in a section earns that section's badge.
 
+## Listening
+
+Every lesson has a read-aloud bar, and `/audiobook` plays the whole course straight through,
+rolling into the next unlocked lesson on its own. Roughly fourteen hours end to end.
+
+Speech comes from the browser's own engine (the Web Speech API), so there is no key to configure,
+no per-character bill, and nothing leaves the machine. Speed and voice are yours to pick and are
+remembered. Code samples and tables are announced rather than read out, because a Rust snippet
+read symbol by symbol is unlistenable; those stay on screen. Listening earns no XP, since
+completion means answering the quiz.
+
 ## Running it
 
 ```bash
@@ -72,7 +83,7 @@ public URLs (`/learn/<slug>`); renaming one orphans the progress that points at 
 
 ```
 api/hono/          learn router, gamification rules
-web/next/          dashboard, course map, lesson player, review, leaderboard
+web/next/          dashboard, course map, lesson player, audiobook, review, leaderboard
 packages/db/       Drizzle schema for content and progress
 packages/scripts/  the curriculum and its seeder
 exercises/         the Rust workspace you actually write code in

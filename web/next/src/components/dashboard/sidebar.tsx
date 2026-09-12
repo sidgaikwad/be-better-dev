@@ -7,6 +7,7 @@ import {
   RiBookOpenLine,
   RiBuildingLine,
   RiDashboardLine,
+  RiHeadphoneLine,
   RiRefreshLine,
   RiStickyNoteLine,
   RiTrophyLine,
@@ -247,6 +248,7 @@ const learnNavItems: {
 }[] = [
   { icon: RiDashboardLine, title: "Dashboard", url: "/dashboard" },
   { exact: false, icon: RiBookOpenLine, title: "Learn", url: "/learn" },
+  { icon: RiHeadphoneLine, title: "Audiobook", url: "/audiobook" },
   { icon: RiRefreshLine, title: "Review", url: "/review" },
   { exact: false, icon: RiStickyNoteLine, title: "Notes", url: "/notes" },
   { icon: RiTrophyLine, title: "Leaderboard", url: "/leaderboard" },

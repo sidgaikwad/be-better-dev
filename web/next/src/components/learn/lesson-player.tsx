@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from "react"
 import { Markdown } from "@/components/learn/markdown"
 import { NotesLayer } from "@/components/learn/notes-layer"
 import { QuizRunner, type QuizResult } from "@/components/learn/quiz"
+import { ReadAloud } from "@/components/learn/read-aloud"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -161,6 +162,12 @@ export function LessonPlayer({ slug }: { slug: string }) {
         </div>
         <p className="text-muted-foreground text-sm">{data.lesson.summary}</p>
       </div>
+
+      <ReadAloud
+        content={data.lesson.content}
+        title={data.lesson.title}
+        summary={data.lesson.summary}
+      />
 
       <div ref={contentRef} className="relative">
         <Markdown>{data.lesson.content}</Markdown>
