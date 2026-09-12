@@ -44,28 +44,23 @@ delete it when the override goes. See the `audit` skill for the procedure.
 - **Exit criteria**: remove once `drizzle-kit` drops `@esbuild-kit/esm-loader` for the `tsx`
   dependency it already carries, which would take the last `~0.18.20` pin out of the tree.
 
-### qs → ^6.16.0
-
-- **Advisory**: two moderate advisories against `>=6.14.2 <=6.15.3`:
-  [GHSA-x5fp-wj9c-mxmx](https://github.com/advisories/GHSA-x5fp-wj9c-mxmx) (array-limit bypass via
-  bracket-key comma parsing) and
-  [GHSA-4mjr-xmp4-gh2g](https://github.com/advisories/GHSA-4mjr-xmp4-gh2g) (denial of service via
-  attacker-controlled `isBuffer`). Both fixed in `6.16.0`.
-- **Why an override**: the only copy is reached as `@web/next` → `shadcn` →
-  `@modelcontextprotocol/sdk` → `express` → `body-parser` → `qs`. No parent bump raises the floor:
-  `body-parser@2.3.0` and `express@5.2.1` are both already the latest releases, and they declare
-  `qs ^6.15.2` and `qs ^6.14.0`, ranges that admit the vulnerable and the patched build alike, so
-  bun had no reason to move off a `6.15.3` that still satisfied both. `6.16.0` sits inside both
-  ranges, so this is a lockfile lift rather than a version a parent rejects. Same trap as the
-  `fast-uri` entry above, and the same `@modelcontextprotocol/sdk` stale pin called out under
-  `hono`.
-- **Risk**: low. Minor-version move inside the range every consumer already declares, and the whole
-  chain is dev-only: `shadcn` is component-sync tooling, and the Express server it carries through
-  `@modelcontextprotocol/sdk` is never started by anything in this repository, so nothing here
-  parses an attacker's query string through it.
-- **Exit criteria**: remove once `express` or `body-parser` declares `qs >= 6.16.0`.
-
 ## Removed overrides
+
+### qs → ^6.16.0, removed
+
+Added to lift a stale `qs@6.15.3` reached through `@web/next` → `shadcn` →
+`@modelcontextprotocol/sdk` → `express` → `body-parser`. The pin did that job, and recording
+`6.16.0` in `bun.lock` is what made it inert: removing it leaves `6.16.0` both against the committed
+lockfile and on a resolve from an empty `bun.lock` and `node_modules`, with no qs advisory at any
+severity rather than only under the `high` gate. Only two ranges ask for qs, `^6.14.0` from express
+and `^6.15.2` from body-parser, and both already admit the patched build, so nothing now in the tree
+pulls it back down. Its stated exit criteria, that express or body-parser declare `qs >= 6.16.0`,
+is not met and is not the right test: it asks whether a parent would raise the floor, when what
+decides an override's fate is whether it is still holding anything up. Note this drops the forward
+ratchet a global pin gives you, and these advisories are moderate, so a future regression would not
+trip the `--audit-level high` gate; the chain is dev-only component-sync tooling whose Express
+server this repository never starts, which is what makes that acceptable. Kept here as the record
+of why it went rather than why it stayed.
 
 ### js-yaml → ^4.3.2, removed
 

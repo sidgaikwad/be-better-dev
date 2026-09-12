@@ -210,7 +210,6 @@
   "overrides": {
     "esbuild": "^0.28.1",
     "postcss": "^8.5.26",
-    "qs": "^6.16.0",
   },
   "catalog": {
     "@arcjet/ip": "^1.9.1",
