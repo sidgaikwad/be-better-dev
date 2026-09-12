@@ -57,7 +57,8 @@
     "fast-uri": "^3.1.7",
     "hono": "^4.13.7",
     "js-yaml": "^4.3.2",
-    "postcss": "^8.5.26"
+    "postcss": "^8.5.26",
+    "qs": "^6.16.0"
   },
   "commitlint": {
     "extends": [
@@ -131,7 +132,7 @@
     "oxlint": "^1.76.0",
     "portless": "^0.15.5",
     "postgres": "^3.4.9",
-    "posthog-js": "^1.409.0",
+    "posthog-js": "^1.430.3",
     "react": "^19.2.7",
     "react-day-picker": "^10.0.1",
     "react-dom": "^19.2.7",
