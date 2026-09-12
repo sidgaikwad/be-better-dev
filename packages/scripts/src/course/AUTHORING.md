@@ -69,6 +69,7 @@ export const traitsAndGenerics: SectionSeed = {
 - No AI-flavored filler: no "delve", "seamless", "supercharge", "unlock the power", "master the art", "comprehensive", "in today's fast-paced world". No exclamation points doing enthusiasm's job.
 - Concrete before abstract. Show the failing program before naming the rule.
 - Code must be correct, current Rust that compiles as shown (or is explicitly marked as rejected, with the real compiler error text where it teaches).
+- An inline compiler error usually contains backticks of its own. Wrap it in a doubled span so they stay literal, with a space inside each pair: `` `?` couldn't convert the error to `SubscribeError` ``. Writing it with single backticks silently breaks the span, which renders stray backticks and leaks them into the read-aloud audio. A multi-line error goes in a ` ```text ` block instead.
 - Assume the reader programs (TypeScript background) but is new to systems concepts: explain memory, OS, and concurrency patiently; never explain what a function or loop is.
 - Facts about crates and tools must be current; when an API moved since the book (actix-web idioms, retired tools), teach the book's version and note what changed.
 

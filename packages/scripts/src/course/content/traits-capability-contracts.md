@@ -77,4 +77,4 @@ Postcard.send_to_all(&recipients, "Welcome", "You are in");
 
 `Postcard` has a `send` with exactly the trait's signature. Does the `send_to_all` call compile?
 
-Answer: no. `error[E0599]: no method named `send_to_all`found for struct`Postcard``. The default method belongs to `EmailClient`, and `Postcard` never wrote `impl EmailClient for Postcard`, so it gets neither the contract nor the freebies. The identical inherent `send` counts for nothing; opting in is the only door. Add the impl block (its `send` may even delegate to the inherent one) and the call compiles.
+Answer: no. `` error[E0599]: no method named `send_to_all` found for struct `Postcard` ``. The default method belongs to `EmailClient`, and `Postcard` never wrote `impl EmailClient for Postcard`, so it gets neither the contract nor the freebies. The identical inherent `send` counts for nothing; opting in is the only door. Add the impl block (its `send` may even delegate to the inherent one) and the call compiles.
