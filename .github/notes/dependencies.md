@@ -80,6 +80,32 @@ delete it when the override goes. See the `audit` skill for the procedure.
 - **Risk**: low. Patch-level move inside the range every consumer already accepts.
 - **Exit criteria**: remove once every parent resolves `postcss >= 8.5.26` unaided.
 
+### esbuild → ^0.28.1
+
+- **Advisory**: [GHSA-67mh-4wv8-2f99](https://github.com/advisories/GHSA-67mh-4wv8-2f99), moderate.
+  esbuild's dev server answers requests from any website and lets it read the response. Affects
+  `<=0.24.2`; the fix first shipped in `0.25.0`, so there is no patched 0.18.x to move to.
+- **Why an override**: the single vulnerable copy was `esbuild@0.18.20` under
+  `@esbuild-kit/core-utils@3.3.2`, reached as `@packages/db` → `drizzle-kit` →
+  `@esbuild-kit/esm-loader` → `@esbuild-kit/core-utils`. Every rung above it is closed.
+  `core-utils` declares `esbuild ~0.18.20`, a tilde ceiling that cannot reach `0.25.0`, and both
+  `@esbuild-kit/core-utils@3.3.2` and `@esbuild-kit/esm-loader@2.6.5` are final releases marked
+  deprecated ("Merged into tsx"), so no parent bump will ever lift it. `drizzle-kit@0.31.10` is
+  already latest and still declares `@esbuild-kit/esm-loader ^2.5.5`. The `^0.28.1` line is chosen
+  because it is the only one that stays inside what the healthy consumers already declare
+  (`tsx ^0.28.1`, `fumadocs-mdx ~0.28.0`); pinning lower, at `^0.25`, would drag `fumadocs-mdx`
+  below its declared floor and put the web build at risk to fix a dev-only CLI.
+- **Risk**: low, and measured rather than assumed. The pin forces two consumers off their declared
+  ranges, `@esbuild-kit/core-utils` (`~0.18.20`) and `drizzle-kit` (`^0.25.4`), so both were
+  exercised directly: `bun run db:generate` loads `drizzle.config.ts` through the core-utils loader
+  and read every table before reporting no schema changes, and a forced `bun run build` compiled
+  `fumadocs-mdx` and `tsdown` clean. Worth recording that the advisory was never reachable here
+  anyway: it concerns esbuild's dev server, and nothing in this repository starts one. esbuild is
+  build-time tooling that never reaches a shipped bundle. The pin also collapses two duplicate
+  esbuild toolchains into one, which drops 50 packages from the tree.
+- **Exit criteria**: remove once `drizzle-kit` drops `@esbuild-kit/esm-loader` for the `tsx`
+  dependency it already carries, which would take the last `~0.18.20` pin out of the tree.
+
 ## Removed overrides
 
 ### brace-expansion → ^5.0.9, removed
