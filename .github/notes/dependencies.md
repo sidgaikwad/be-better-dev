@@ -18,9 +18,13 @@ delete it when the override goes. See the `audit` skill for the procedure.
   declares, so this is a lockfile lift rather than a version the parent rejects. `bun update`
   will not perform that lift on its own, because the pinned `4.3.1` already satisfies the range.
 - **Risk**: low. Both consumers are dev-only tooling (commit linting, component sync) and neither
-  parses attacker-supplied YAML; nothing here ships to production. Note the override is global, so
-  it also pins the root's own `js-yaml` dependency, which the catalog puts at `^5.2.3`. Nothing in
-  this repository imports `js-yaml`, so that entry is vestigial and the pin costs nothing.
+  parses attacker-supplied YAML; nothing here ships to production. The pin is global, because bun
+  does not support nested overrides, but `cosmiconfig` is now the only thing in the tree that
+  resolves `js-yaml` at all, so the pin has exactly one target. The root package used to declare
+  `js-yaml` as a direct dependency (catalog `^5.2.3`) which this override then dragged onto the 4.x
+  line; that dependency was vestigial, since nothing imports it and frontmatter is parsed with
+  `Bun.YAML.parse`, so it and its catalog entry were removed rather than left to read as a
+  contradiction.
 - **Exit criteria**: remove once `@commitlint/cli` and `shadcn` resolve `cosmiconfig >= 10.0.1`,
   or `js-yaml >= 4.3.2`, on their own.
 
