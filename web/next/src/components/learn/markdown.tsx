@@ -59,8 +59,9 @@ function CodeBlock({ code, lang }: { code: string; lang: string }) {
   )
 }
 
-// Markdown renderer for lesson content and quiz prompts stored in the
-// database. Content is authored in this repo (seeded, not user-supplied).
+// Markdown renderer for lesson content and every piece of quiz text stored in
+// the database: prompts, options, and explanations are all authored as
+// markdown. Content is authored in this repo (seeded, not user-supplied).
 export function Markdown({ children, className }: { children: string; className?: string }) {
   return (
     <div className={cn("text-sm leading-6", className)}>
