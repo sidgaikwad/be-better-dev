@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.3
+
+[compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.2...v0.0.3)
+
+### 🩹 Fixes
+
+- **deps:** Clear the nine high and critical advisories ([#5](https://github.com/sidgaikwad/be-better-dev/pull/5))
+
+### ❤️ Contributors
+
+- Siddharth Gaikwad @sidgaikwad
+
 ## v0.0.2
 
 [compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.1...v0.0.2)
