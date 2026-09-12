@@ -62,3 +62,4 @@ Stop after the commit. Push only when the user says "commit and push", "push the
 
 - Never commit directly to canary (the default branch); branch first, then PR.
 - The pre-commit build prints the size table only. Refresh the graph svg manually: `bun .github/scripts/build-sizes.ts --graph`.
+- Prefer letting CI refresh that svg. `auto-release.yml` regenerates it from a Linux build, and the `@web/next` label is platform-dependent: `web/next/.next/standalone` carries host-specific native binaries (macOS arm64 pulls `@img/sharp-libvips-darwin-arm64` and `@takumi-rs/core-darwin-arm64`), so refreshing on a Mac understates it by roughly 4 MB and the number jumps at the next release. Measured on one commit: 74.61 MB local vs 78.81 MB in CI. If you do regenerate locally on macOS, say so in the PR so the swing is not read as a bundle regression.
