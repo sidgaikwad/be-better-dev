@@ -5,47 +5,6 @@ delete it when the override goes. See the `audit` skill for the procedure.
 
 ## Active overrides
 
-### js-yaml → ^4.3.2
-
-- **Advisory**: [GHSA-2883-xcg3-v3hh](https://github.com/advisories/GHSA-2883-xcg3-v3hh), high.
-  `maxTotalMergeKeys` does not limit CPU use for empty merge sources. Affects `>=4.0.0 <4.3.2`.
-  Supersedes [GHSA-5p4m-2wfm-xmqj](https://github.com/advisories/GHSA-5p4m-2wfm-xmqj), the
-  `!!omap` advisory this override was originally opened for.
-- **Why an override**: the only consumer is `cosmiconfig@9`, reached through `@commitlint/cli`
-  and `shadcn`. `cosmiconfig@10.0.1` moved to `js-yaml ^5.4.1` and would lift this on a higher
-  rung, but neither parent has adopted it: `@commitlint/load@21.2.2` and `shadcn@4.21.0` both
-  still declare `cosmiconfig ^9`. `4.3.2` sits inside the `^4.1.0` range cosmiconfig already
-  declares, so this is a lockfile lift rather than a version the parent rejects. `bun update`
-  will not perform that lift on its own, because the pinned `4.3.1` already satisfies the range.
-- **Risk**: low. Both consumers are dev-only tooling (commit linting, component sync) and neither
-  parses attacker-supplied YAML; nothing here ships to production. The pin is global, because bun
-  does not support nested overrides, but `cosmiconfig` is now the only thing in the tree that
-  resolves `js-yaml` at all, so the pin has exactly one target. The root package used to declare
-  `js-yaml` as a direct dependency (catalog `^5.2.3`) which this override then dragged onto the 4.x
-  line; that dependency was vestigial, since nothing imports it and frontmatter is parsed with
-  `Bun.YAML.parse`, so it and its catalog entry were removed rather than left to read as a
-  contradiction.
-- **Exit criteria**: remove once `@commitlint/cli` and `shadcn` resolve `cosmiconfig >= 10.0.1`,
-  or `js-yaml >= 4.3.2`, on their own.
-
-### fast-uri → ^3.1.7
-
-- **Advisory**: four high advisories against `>=3.1.3 <3.1.6`, all reachable through URI parsing:
-  [GHSA-5jgf-p345-68v8](https://github.com/advisories/GHSA-5jgf-p345-68v8) (host confusion via
-  skipped IDN canonicalization on scheme-relative references),
-  [GHSA-f65p-4m7j-42xc](https://github.com/advisories/GHSA-f65p-4m7j-42xc) (SSRF via malformed
-  IPv6 normalization), [GHSA-fph4-wmhf-6fwf](https://github.com/advisories/GHSA-fph4-wmhf-6fwf)
-  (SSRF via repeated hostname percent-decoding), and
-  [GHSA-jqff-g426-hqxp](https://github.com/advisories/GHSA-jqff-g426-hqxp) (host confusion via
-  percent-encoded scheme normalization).
-- **Why an override**: fast-uri is never a direct dependency. It arrives under `shadcn`, and under
-  `ajv` by way of `@commitlint/cli` → `@commitlint/load` → `@commitlint/config-validator`. There
-  is no catalog entry to bump and no parent release that moves off the affected range, so the pin
-  is the only rung available. This override already existed at `^3.1.5`, which the advisories
-  later grew to cover; only the floor moved.
-- **Risk**: low. Both paths are dev-only tooling and neither resolves URIs from untrusted input.
-- **Exit criteria**: remove once `shadcn` and `ajv` resolve `fast-uri >= 3.1.6` unaided.
-
 ### postcss → ^8.5.26
 
 - **Advisory**: [GHSA-2v37-7h3g-55p8](https://github.com/advisories/GHSA-2v37-7h3g-55p8), high,
@@ -107,6 +66,27 @@ delete it when the override goes. See the `audit` skill for the procedure.
 - **Exit criteria**: remove once `express` or `body-parser` declares `qs >= 6.16.0`.
 
 ## Removed overrides
+
+### js-yaml → ^4.3.2, removed
+
+Held [GHSA-2883-xcg3-v3hh](https://github.com/advisories/GHSA-2883-xcg3-v3hh), high, off
+`cosmiconfig@9` under `@commitlint/cli` and `shadcn`. Its exit criteria allowed either parent
+adopting `cosmiconfig >= 10.0.1` or the tree resolving `js-yaml >= 4.3.2` unaided, and the second
+is now true: `cosmiconfig` declares `js-yaml ^4.1.0`, and that range resolves to `4.3.2` on its
+own. Removing the pin leaves `4.3.2` both against the committed lockfile, where the only change is
+the declaration line itself, and on a resolve from an empty `bun.lock` and `node_modules`, with no
+js-yaml advisory at any severity. Kept here as the record of why it went rather than why it stayed.
+
+### fast-uri → ^3.1.7, removed
+
+Held four high advisories against `>=3.1.3 <3.1.6` off `shadcn` and off `ajv`, reached through
+`@commitlint/cli` → `@commitlint/load` → `@commitlint/config-validator`. Its exit criteria, that
+`shadcn` and `ajv` resolve `fast-uri >= 3.1.6` unaided, is now met: the only range left in the tree
+is `ajv`'s `^3.0.1`, which resolves to `3.1.7` on its own. Removing the pin leaves `3.1.7` both
+against the committed lockfile, where the only change is the declaration line itself, and on a
+resolve from an empty `bun.lock` and `node_modules`, with no fast-uri advisory at any severity.
+The block used to call the pin "the only rung available", which was true of a parent bump but not
+of re-resolving the entry. Kept here as the record of why it went rather than why it stayed.
 
 ### hono → ^4.13.7, removed
 
