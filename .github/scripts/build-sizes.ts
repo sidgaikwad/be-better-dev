@@ -2,19 +2,17 @@ import { $, Glob } from "bun"
 
 async function dirSize(path: string, exclude?: string): Promise<number> {
   try {
-    if (exclude) {
-      const glob = new Glob(`**/*`)
-      const excludeGlob = new Glob(exclude)
-      let total = 0
-      for await (const entry of glob.scan({ cwd: path, dot: true })) {
-        if (excludeGlob.match(entry)) continue
-        const stat = Bun.file(`${path}/${entry}`)
-        total += stat.size
-      }
-      return total
+    // sum logical bytes, never `du`: du reports allocated blocks, so an in-place
+    // rebuild can report ~38% over the real size and flip a graph label with no
+    // code change. walking keeps every row and label measured the same way.
+    const glob = new Glob(`**/*`)
+    const excludeGlob = exclude ? new Glob(exclude) : undefined
+    let total = 0
+    for await (const entry of glob.scan({ cwd: path, dot: true })) {
+      if (excludeGlob?.match(entry)) continue
+      total += Bun.file(`${path}/${entry}`).size
     }
-    const result = await $`du -sk ${path}`.quiet()
-    return parseInt(result.text().split("\t")[0]) * 1024
+    return total
   } catch {
     return 0
   }
