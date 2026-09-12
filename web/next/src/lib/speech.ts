@@ -29,7 +29,11 @@ const MIN_SEGMENT_CHARS = 24
 // voices; it is a signpost, not a promise.
 const WORDS_PER_MINUTE = 185
 
-const CODE_FENCE = /^\s*(?:```|~~~)/
+// A fence is three or more markers, and closes only on a run at least as long
+// as the one that opened it. The lessons on doc tests wrap a three-backtick
+// example inside a four-backtick block, which a fixed-length fence would close
+// at the inner marker and then read the remaining code as prose.
+const CODE_FENCE = /^\s*(`{3,}|~{3,})/
 const HEADING = /^(#{1,6})\s+(.*)$/
 const LIST_ITEM = /^\s*(?:[-*+]|\d+[.)])\s+(.*)$/
 const BLOCKQUOTE = /^\s*>\s?(.*)$/
@@ -43,12 +47,20 @@ const TABLE_ROW = /^\s*\|/
  * and "from str", which is what a person reading aloud would say anyway.
  */
 function speakableCode(value: string) {
-  return value
-    .replace(/::/g, " ")
-    .replace(/[<>_]/g, " ")
-    .replace(/->|=>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
+  return (
+    value
+      // Arrows first: stripping the angle brackets on their own would leave a
+      // bare hyphen behind, and `FnOnce(T) -> U` would be read as a subtraction.
+      .replace(/->|=>/g, " ")
+      .replace(/::/g, " ")
+      // The pipe is Rust closure syntax far more often than anything spoken,
+      // so `|s| s.name` should read as "s s.name" rather than naming the bars.
+      // Backticks can survive into here from a doubled span quoting a fence
+      // marker, and are punctuation either way.
+      .replace(/[<>_|`]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+  )
 }
 
 /** Strips markdown decoration, keeping the words a person would actually say. */
@@ -58,7 +70,16 @@ function speakableInline(value: string) {
       // Images carry no spoken content beyond their alt text.
       .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
       .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
-      .replace(/`([^`]+)`/g, (_match, code: string) => speakableCode(code))
+      // Code spans, paired the way markdown pairs them: a run of N backticks
+      // closes on a run of exactly N, which is how the lessons quote a compiler
+      // error or a fence marker that itself contains backticks. The lookarounds
+      // are what enforce "exactly N" by rejecting a tick with more ticks beside
+      // it. Pairing one tick at a time instead splits such a span at its inner
+      // marker and glues together the words on either side. The padding keeps
+      // the spaces around the span, which trimming the code text would eat.
+      .replace(/(?<!`)(`+)(?!`)([\s\S]*?)(?<!`)\1(?!`)/g, (_match, _run: string, code: string) => {
+        return ` ${speakableCode(code)} `
+      })
       .replace(/\*\*([^*]+)\*\*/g, "$1")
       .replace(/__([^_]+)__/g, "$1")
       // Single asterisks only. A lone underscore is far more likely to be part
@@ -190,12 +211,25 @@ export function toSpeechSegments(
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i] ?? ""
 
-    if (CODE_FENCE.test(line)) {
+    const fence = CODE_FENCE.exec(line)
+    if (fence) {
       flushAll()
-      const language = line.replace(/^\s*(?:```|~~~)/, "").trim()
+      const opener = fence[1] ?? "```"
+      const language = line.slice(fence[0].length).trim()
       let body = 0
       i++
-      while (i < lines.length && !CODE_FENCE.test(lines[i] ?? "")) {
+      while (i < lines.length) {
+        const closer = CODE_FENCE.exec(lines[i] ?? "")
+        // Only a run at least as long as the opener, and of the same marker,
+        // closes the block; a shorter one is content.
+        if (
+          closer &&
+          closer[1] &&
+          closer[1][0] === opener[0] &&
+          closer[1].length >= opener.length
+        ) {
+          break
+        }
         body++
         i++
       }
