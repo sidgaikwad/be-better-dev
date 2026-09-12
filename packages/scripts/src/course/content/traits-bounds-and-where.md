@@ -98,4 +98,4 @@ fn describe<T: Debug>(value: &T) {
 
 The bound grants `Debug`. Does this compile?
 
-Answer: no. The second line fails with `error[E0277]: `T`doesn't implement`std::fmt::Display``, because `{}` formatting belongs to the `Display` trait and the capability list for `T` is exactly its bounds. Even though every type you plan to pass implements both, the function must hold for all `T: Debug`, and some `T: Debug` types have no `Display`. Add `+ Display` to the bound and it compiles. Generic code never gets to use a method it did not ask for; that is what makes the signature a complete contract.
+Answer: no. The second line fails with `` error[E0277]: `T` doesn't implement `std::fmt::Display` ``, because `{}` formatting belongs to the `Display` trait and the capability list for `T` is exactly its bounds. Even though every type you plan to pass implements both, the function must hold for all `T: Debug`, and some `T: Debug` types have no `Display`. Add `+ Display` to the bound and it compiles. Generic code never gets to use a method it did not ask for; that is what makes the signature a complete contract.

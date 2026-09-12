@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.4
+
+[compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.3...v0.0.4)
+
+### 🩹 Fixes
+
+- **deps:** Bump hono past the reachable CORS redos ([#11](https://github.com/sidgaikwad/be-better-dev/pull/11))
+
+### ❤️ Contributors
+
+- Siddharth Gaikwad @sidgaikwad
+
 ## v0.0.3
 
 [compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.2...v0.0.3)
