@@ -38,9 +38,9 @@ export const traitsAndGenerics: SectionSeed = {
             {
               kind: "mcq", // or "predict"
               prompt: "Plain question; inline `code` allowed.",
-              options: ["A", "B", "C", "D"], // 3-4 options
+              options: ["A", "B", "C", "D"], // 3-4 options; inline `code` allowed
               answer: 1, // index into options, zero-based
-              explanation: "1-2 sentences: why the right answer is right.",
+              explanation: "1-2 sentences: why the right answer is right; inline `code` allowed.",
             },
           ],
         },
