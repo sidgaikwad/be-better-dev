@@ -63,8 +63,8 @@ Inherited from the ZeroStarter scaffold with no advisory or rationale recorded, 
 carried the exit criteria "drop it, reinstall, and delete this block if the audit stays clean".
 Doing exactly that shows the pin was inert: the only requester declares `brace-expansion ^5.0.5`
 and already resolves to `5.0.9` unaided, so removing the override left every resolution in
-`bun.lock` untouched and the audit clean at every severity, not just the `high` gate. Kept here as
-the record of why it went rather than why it stayed.
+`bun.lock` untouched and `brace-expansion` carrying no advisory at any severity, not just under
+the `high` gate. Kept here as the record of why it went rather than why it stayed.
 
 ### sharp → ^0.35.3, removed
 
