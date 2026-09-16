@@ -15,6 +15,7 @@ import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import {
   admin as adminPlugin,
+  bearer as bearerPlugin,
   openAPI as openAPIPlugin,
   organization as organizationPlugin,
 } from "better-auth/plugins"
@@ -99,6 +100,9 @@ export const auth = betterAuth({
     session: { create: { before: grantConsoleAccessOnSignIn } },
   },
   plugins: [
+    // Accepts `Authorization: Bearer <session token>` alongside the session cookie, which is what lets a non-browser client (a CLI, a script, a terminal reader) reach the API at all. It is a request hook, not a route: it verifies the token's signature and rewrites it onto the request as the session cookie, so every router and the API's own authMiddleware keep resolving sessions exactly as they did, with no change of their own.
+    // Leave requireSignature off. A token minted by a device-authorization style flow is the session row's own token and arrives unsigned, which is precisely what requireSignature rejects, so enabling it would break CLI sign-in the day one is added.
+    bearerPlugin(),
     openAPIPlugin(),
     organizationPlugin({
       teams: { enabled: true },
