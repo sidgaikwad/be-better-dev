@@ -25,11 +25,14 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { apiClient, unwrap } from "@/lib/api/client"
 import { cn } from "@/lib/utils"
 
-export function CourseMap() {
+// Without a courseId the API draws the first course on the shelf.
+export function CourseMap({ courseId }: { courseId?: string }) {
   const { data, isPending, error, refetch } = useQuery({
-    queryKey: ["learn", "map"],
+    queryKey: ["learn", "map", courseId ?? null],
     queryFn: async () => {
-      const { data, error } = await unwrap(apiClient.v1.learn.map.$get())
+      const { data, error } = await unwrap(
+        apiClient.v1.learn.map.$get({ query: courseId ? { course: courseId } : {} }),
+      )
       if (error) throw new Error(error.message)
       return data
     },

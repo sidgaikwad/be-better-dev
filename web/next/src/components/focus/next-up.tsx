@@ -38,13 +38,16 @@ import { cn } from "@/lib/utils"
  */
 type LessonTarget = { id: string; title: string; summary: string; xp: number }
 
-export function NextUp() {
+// Without a courseId the API answers with the first course on the shelf.
+export function NextUp({ courseId }: { courseId?: string }) {
   const timer = useFocusTimer()
 
   const map = useQuery({
-    queryKey: ["learn", "map"],
+    queryKey: ["learn", "map", courseId ?? null],
     queryFn: async () => {
-      const { data, error } = await unwrap(apiClient.v1.learn.map.$get())
+      const { data, error } = await unwrap(
+        apiClient.v1.learn.map.$get({ query: courseId ? { course: courseId } : {} }),
+      )
       if (error) throw new Error(error.message)
       return data
     },

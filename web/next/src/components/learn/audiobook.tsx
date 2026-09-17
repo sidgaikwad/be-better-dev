@@ -61,7 +61,8 @@ const lessonQueryOptions = (id: string) => ({
  * Listening deliberately awards no XP and completes nothing. Completion means
  * answering the quiz, and a lesson you dozed through is not a lesson you passed.
  */
-export function Audiobook() {
+// Without a courseId the API answers with the first course on the shelf.
+export function Audiobook({ courseId }: { courseId?: string }) {
   const queryClient = useQueryClient()
   const [currentId, setCurrentId] = useState<string | null>(null)
   const [continuous, setContinuous] = useState(true)
@@ -71,9 +72,11 @@ export function Audiobook() {
   const autoplayRef = useRef(false)
 
   const map = useQuery({
-    queryKey: ["learn", "map"],
+    queryKey: ["learn", "map", courseId ?? null],
     queryFn: async () => {
-      const { data, error } = await unwrap(apiClient.v1.learn.map.$get())
+      const { data, error } = await unwrap(
+        apiClient.v1.learn.map.$get({ query: courseId ? { course: courseId } : {} }),
+      )
       if (error) throw new Error(error.message)
       return data
     },
