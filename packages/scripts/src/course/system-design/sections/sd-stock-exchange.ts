@@ -116,9 +116,59 @@ export const sdStockExchange: SectionSeed = {
     },
     {
       slug: "microseconds",
-      title: "Microseconds",
+      title: "Microseconds and fairness",
       description: "Where the architecture stops resembling everything else in this course.",
       lessons: [
+        {
+          slug: "sd-se-market-data",
+          title: "Market data and fairness",
+          summary:
+            "Three levels from one source, why multicast rather than a connection per subscriber, and why cable length becomes a fairness parameter.",
+          contentFile: "sd-se-market-data.md",
+          quiz: [
+            {
+              kind: "mcq",
+              prompt:
+                "Why do exchanges distribute market data by multicast rather than a TCP connection per subscriber?",
+              options: [
+                "Multicast is more reliable over long distances",
+                "A thousand TCP copies are serialized by one publisher, so lateness depends on your position in a loop nobody chose",
+                "TCP cannot carry binary market data formats",
+                "Multicast allows per-subscriber filtering",
+              ],
+              answer: 1,
+              explanation:
+                "Publish once and the network delivers to everyone at essentially the same moment, with the publisher's work constant in subscriber count. The cost is unreliability, handled by sequence numbers and a separate recovery channel.",
+            },
+            {
+              kind: "mcq",
+              prompt: "Why do exchanges give every colocated participant the same cable length?",
+              options: [
+                "To simplify data center cabling",
+                "Because proximity is a tradeable advantage, and when light speed is a measurable share of the latency budget, cable length is a fairness parameter",
+                "To reduce signal degradation",
+                "Because rack positions are assigned randomly",
+              ],
+              answer: 1,
+              explanation:
+                "Fairness is a functional requirement rather than an aspiration: an exchange's value is that participants believe it is fair. The same reasoning forbids preferential ordering or publishing data to some subscribers first.",
+            },
+            {
+              kind: "predict",
+              prompt:
+                "A subscriber receives market data messages 5,001 and 5,003. What must it not do?",
+              options: [
+                "Request 5,002 on the recovery channel",
+                "Act on 5,003 before the gap is filled, since a missing cancellation leaves a phantom order and every later update compounds it silently",
+                "Reconnect to the feed",
+                "Fall back to the L1 feed",
+              ],
+              answer: 1,
+              explanation:
+                "Market data is cumulative, so a reconstructed book is correct only if every update is applied in order. The sequence number is the only thing turning a silent permanent divergence into a detectable event, which is why serious subscribers run two independent feeds.",
+            },
+          ],
+        },
         {
           slug: "sd-se-latency",
           title: "Tens of microseconds",
