@@ -66,9 +66,58 @@ export const sdDigitalWallet: SectionSeed = {
     },
     {
       slug: "reproducibility",
-      title: "Reproducibility",
-      description: "Answering how a balance got that way, and making it fast enough.",
+      title: "Reproducibility and boundaries",
+      description: "Answering how a balance got that way, making it fast, and where money enters.",
       lessons: [
+        {
+          slug: "sd-dw-boundaries",
+          title: "Where money enters and leaves",
+          summary:
+            "Why the zero-sum invariant needs a float account, balances that have states rather than one number, and a reconciliation that must model timing.",
+          contentFile: "sd-dw-boundaries.md",
+          quiz: [
+            {
+              kind: "mcq",
+              prompt: "How is the zero-sum invariant preserved once top-ups exist?",
+              options: [
+                "By excluding top-ups from the invariant",
+                "By adding a float account representing funds held externally, so a top-up is an internal double-entry transaction",
+                "By reconciling against the bank daily instead",
+                "By treating top-ups as a separate ledger",
+              ],
+              answer: 1,
+              explanation:
+                "The correct invariant is that the sum of wallet balances equals money held in your bank accounts on users' behalf. Treating the outside world as one more account preserves the payment section's rule that all entries sum to zero.",
+            },
+            {
+              kind: "mcq",
+              prompt: "Why do wallet balances have states rather than being one number?",
+              options: [
+                "To support multiple currencies",
+                "Because money credited on authorization may never settle, so it is visible as pending before becoming spendable",
+                "To allow partial withdrawals",
+                "Because the read model is eventually consistent",
+              ],
+              answer: 1,
+              explanation:
+                "Crediting only on settlement is safe and slow; crediting immediately is lending. Most wallets credit to an unavailable balance, which is why available, pending and held are separate.",
+            },
+            {
+              kind: "predict",
+              prompt:
+                "Daily reconciliation differs from the bank balance by exactly one pending withdrawal. Is that a discrepancy?",
+              options: [
+                "Yes: any difference indicates a bug",
+                "No: it is expected, and the comparison must add in-flight movements so a genuine discrepancy is anything that does not fit",
+                "Yes, until the withdrawal settles the next morning",
+                "No, and the reconciliation should tolerate a fixed margin",
+              ],
+              answer: 1,
+              explanation:
+                "Comparing raw totals produces a mismatch every day, which trains everyone to ignore the report, and an ignored reconciliation is worse than none. Compute the expected value exactly so a non-zero result means something.",
+            },
+          ],
+        },
         {
           slug: "sd-dw-event-sourcing",
           title: "Event sourcing",
