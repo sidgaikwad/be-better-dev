@@ -167,6 +167,55 @@ export const sdNewsFeed: SectionSeed = {
             },
           ],
         },
+        {
+          slug: "sd-nf-ranking",
+          title: "When the feed stops being chronological",
+          summary:
+            "Why chronological order degrades as the graph grows, what ranking costs the precomputed-list design, and where the latency actually goes.",
+          contentFile: "sd-nf-ranking.md",
+          quiz: [
+            {
+              kind: "mcq",
+              prompt: "Why does a chronological feed degrade as a user follows more accounts?",
+              options: [
+                "The feed cache runs out of space",
+                "You see the newest items rather than the best ones, so a close friend loses to whatever posted four minutes ago",
+                "Sorting becomes too expensive",
+                "Fanout latency grows with follow count",
+              ],
+              answer: 1,
+              explanation:
+                "1,000 items a day against 60 seen means the selection is made by timing alone. Signal-to-noise falls fastest for the most engaged users, who follow the most accounts.",
+            },
+            {
+              kind: "mcq",
+              prompt: "What does ranking break about the precomputed-list design?",
+              options: [
+                "Fanout can no longer be asynchronous",
+                "The order depends on signals that change, so a stored ordered list is no longer valid to read back",
+                "Post ids can no longer be used as feed entries",
+                "The candidate pool must be stored per author",
+              ],
+              answer: 1,
+              explanation:
+                "The usual resolution is two stages: fanout on write still produces an unranked candidate pool, and ranking runs at read time over it with scores cached briefly. Push for candidate generation, pull for ordering.",
+            },
+            {
+              kind: "predict",
+              prompt:
+                "Moving to ranked feeds takes load latency from 50 ms to 400 ms. What dominates the new cost?",
+              options: [
+                "Model inference over the candidate set",
+                "Feature fetching: per-reader-per-post signals for hundreds of candidates, as individual lookups",
+                "Sorting the ranked results",
+                "Writing the ranked order back to the cache",
+              ],
+              answer: 1,
+              explanation:
+                "Scoring 500 candidates with a small model is single-digit milliseconds, so a slow model is usually the wrong diagnosis. Batch each tier into one multi-get, precompute author and post features at write time, and cut the pool with a cheap first pass.",
+            },
+          ],
+        },
       ],
     },
   ],
