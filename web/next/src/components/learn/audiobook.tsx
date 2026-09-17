@@ -27,6 +27,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
 import { toast } from "@/components/ui/toast"
+import { useActiveCourse } from "@/hooks/use-active-course"
 import { useSpeech } from "@/hooks/use-speech"
 import { apiClient, unwrap } from "@/lib/api/client"
 import { toSpeechSegments } from "@/lib/speech"
@@ -61,9 +62,9 @@ const lessonQueryOptions = (id: string) => ({
  * Listening deliberately awards no XP and completes nothing. Completion means
  * answering the quiz, and a lesson you dozed through is not a lesson you passed.
  */
-// Without a courseId the API answers with the first course on the shelf.
-export function Audiobook({ courseId }: { courseId?: string }) {
+export function Audiobook() {
   const queryClient = useQueryClient()
+  const { courseId, ready } = useActiveCourse()
   const [currentId, setCurrentId] = useState<string | null>(null)
   const [continuous, setContinuous] = useState(true)
   // Set just before a lesson change that should start speaking on arrival, so
@@ -72,6 +73,7 @@ export function Audiobook({ courseId }: { courseId?: string }) {
   const autoplayRef = useRef(false)
 
   const map = useQuery({
+    enabled: ready,
     queryKey: ["learn", "map", courseId ?? null],
     queryFn: async () => {
       const { data, error } = await unwrap(

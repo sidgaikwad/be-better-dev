@@ -23,6 +23,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useActiveCourse } from "@/hooks/use-active-course"
 import { BREAK_MINUTES, FOCUS_LENGTHS, useFocusTimer } from "@/hooks/use-focus-timer"
 import { apiClient, unwrap } from "@/lib/api/client"
 import { cn } from "@/lib/utils"
@@ -38,11 +39,12 @@ import { cn } from "@/lib/utils"
  */
 type LessonTarget = { id: string; title: string; summary: string; xp: number }
 
-// Without a courseId the API answers with the first course on the shelf.
-export function NextUp({ courseId }: { courseId?: string }) {
+export function NextUp() {
   const timer = useFocusTimer()
+  const { courseId, ready } = useActiveCourse()
 
   const map = useQuery({
+    enabled: ready,
     queryKey: ["learn", "map", courseId ?? null],
     queryFn: async () => {
       const { data, error } = await unwrap(
