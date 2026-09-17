@@ -9,6 +9,7 @@ import {
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 
+import { CourseSwitcher } from "@/components/learn/course-switcher"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -22,14 +23,21 @@ import {
 } from "@/components/ui/empty"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useActiveCourse } from "@/hooks/use-active-course"
 import { apiClient, unwrap } from "@/lib/api/client"
 import { cn } from "@/lib/utils"
 
 export function CourseMap() {
+  const { courseId, setCourseId, ready } = useActiveCourse()
   const { data, isPending, error, refetch } = useQuery({
-    queryKey: ["learn", "map"],
+    // Held until the stored course is known, so a learner mid-way through the
+    // second course never watches the first one paint and then get replaced.
+    enabled: ready,
+    queryKey: ["learn", "map", courseId ?? null],
     queryFn: async () => {
-      const { data, error } = await unwrap(apiClient.v1.learn.map.$get())
+      const { data, error } = await unwrap(
+        apiClient.v1.learn.map.$get({ query: courseId ? { course: courseId } : {} }),
+      )
       if (error) throw new Error(error.message)
       return data
     },
@@ -75,6 +83,10 @@ export function CourseMap() {
 
   return (
     <div className="space-y-8">
+      <div className="space-y-3">
+        <CourseSwitcher courseId={courseId} onSelect={setCourseId} />
+        <p className="text-muted-foreground text-sm">{data.course.description}</p>
+      </div>
       <div className="space-y-2">
         <div className="text-muted-foreground flex items-center justify-between text-sm">
           <span>

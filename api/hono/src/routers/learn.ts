@@ -42,6 +42,14 @@ import {
   type MilestoneBadge,
 } from "@/lib/gamify"
 
+const courseNodeSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  lessonsTotal: z.number(),
+  lessonsDone: z.number(),
+})
+
 const lessonNodeSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -98,6 +106,11 @@ const badgeSchema = z.object({
   icon: z.string(),
 })
 
+const mapQuerySchema = z.object({
+  // Which course to draw. Omitted means the first one on the shelf.
+  course: z.string().max(64).optional(),
+})
+
 const completeBodySchema = z.object({
   // One entry per quiz item, in quiz order; -1 marks an unanswered item.
   answers: z.array(z.number().int().min(-1).max(15)).max(50),
@@ -111,15 +124,18 @@ const reviewBodySchema = z.object({
     .max(50),
 })
 
-// Global lesson order: part, then section, then unit, then lesson position.
-// The id tiebreaker keeps the order total even if positions ever collide.
-async function orderedLessonIds(): Promise<string[]> {
+// Lesson order within one course: part, then section, then unit, then lesson
+// position. The id tiebreaker keeps the order total even if positions ever
+// collide. Scoped to a course so the unlock chain never runs off the end of one
+// course into the first lesson of the next.
+async function orderedLessonIds(courseId: string): Promise<string[]> {
   const rows = await db
     .select({ id: lesson.id })
     .from(lesson)
     .innerJoin(courseUnit, eq(lesson.unitId, courseUnit.id))
     .innerJoin(courseSection, eq(courseUnit.sectionId, courseSection.id))
     .innerJoin(coursePart, eq(courseSection.partId, coursePart.id))
+    .where(eq(coursePart.courseId, courseId))
     .orderBy(
       asc(coursePart.position),
       asc(courseSection.position),
@@ -188,6 +204,69 @@ async function awardBadge(
 
 export const learnRouter = new Hono<{ Variables: Session }>()
   .get(
+    "/courses",
+    describeRoute({
+      tags: ["Learn"],
+      description: "Every course on the platform with this user's progress through each one",
+      ...({
+        "x-codeSamples": [
+          {
+            lang: "typescript",
+            label: "hono/client",
+            source: `import { apiClient, unwrap } from "@/lib/api/client"
+
+const { data, error } = await unwrap(apiClient.v1.learn.courses.$get())`,
+          },
+        ],
+      } as object),
+      responses: {
+        200: {
+          description: "OK",
+          content: {
+            "application/json": {
+              schema: resolver(
+                z.object({ data: z.object({ courses: z.array(courseNodeSchema) }) }),
+              ),
+            },
+          },
+        },
+        ...authErrorResponses,
+      },
+    }),
+    async (c) => {
+      const { id: userId } = c.get("user")
+      const [rows, lessons, done] = await Promise.all([
+        db.select().from(course).orderBy(asc(course.position), asc(course.id)),
+        db
+          .select({ courseId: coursePart.courseId, lessonId: lesson.id })
+          .from(lesson)
+          .innerJoin(courseUnit, eq(lesson.unitId, courseUnit.id))
+          .innerJoin(courseSection, eq(courseUnit.sectionId, courseSection.id))
+          .innerJoin(coursePart, eq(courseSection.partId, coursePart.id)),
+        completedLessonIds(userId),
+      ])
+
+      const totals = new Map<string, { total: number; completed: number }>()
+      for (const row of lessons) {
+        const tally = totals.get(row.courseId) ?? { total: 0, completed: 0 }
+        tally.total += 1
+        if (done.has(row.lessonId)) tally.completed += 1
+        totals.set(row.courseId, tally)
+      }
+
+      const data = {
+        courses: rows.map((row) => ({
+          id: row.id,
+          title: row.title,
+          description: row.description,
+          lessonsTotal: totals.get(row.id)?.total ?? 0,
+          lessonsDone: totals.get(row.id)?.completed ?? 0,
+        })),
+      }
+      return c.json({ data })
+    },
+  )
+  .get(
     "/map",
     describeRoute({
       tags: ["Learn"],
@@ -200,7 +279,7 @@ export const learnRouter = new Hono<{ Variables: Session }>()
             label: "hono/client",
             source: `import { apiClient, unwrap } from "@/lib/api/client"
 
-const { data, error } = await unwrap(apiClient.v1.learn.map.$get())`,
+const { data, error } = await unwrap(apiClient.v1.learn.map.$get({ query: { course: "rust" } }))`,
           },
         ],
       } as object),
@@ -227,12 +306,34 @@ const { data, error } = await unwrap(apiClient.v1.learn.map.$get())`,
         },
         ...authErrorResponses,
         ...notFoundErrorResponses,
+        ...validationErrorResponses,
       },
+    }),
+    sValidator("query", mapQuerySchema, (result) => {
+      if (!result.success) {
+        throw new ApiError(400, "VALIDATION_ERROR", "Invalid course filter", {
+          issues: result.error,
+        })
+      }
     }),
     async (c) => {
       const { id: userId } = c.get("user")
-      const [courseRow] = await db.select().from(course).orderBy(asc(course.id)).limit(1)
-      if (!courseRow) throw new ApiError(404, "NOT_FOUND", "No course seeded yet")
+      const { course: requested } = c.req.valid("query")
+      // No ?course= means the first course on the shelf, by authored position.
+      // Keeps every caller written before the platform carried two of them working.
+      const [courseRow] = await db
+        .select()
+        .from(course)
+        .where(requested ? eq(course.id, requested) : undefined)
+        .orderBy(asc(course.position), asc(course.id))
+        .limit(1)
+      if (!courseRow) {
+        throw new ApiError(
+          404,
+          "NOT_FOUND",
+          requested ? `No course with id ${requested}` : "No course seeded yet",
+        )
+      }
 
       const [parts, sections, units, lessons, done, badges] = await Promise.all([
         db
@@ -240,9 +341,30 @@ const { data, error } = await unwrap(apiClient.v1.learn.map.$get())`,
           .from(coursePart)
           .where(eq(coursePart.courseId, courseRow.id))
           .orderBy(asc(coursePart.position)),
-        db.select().from(courseSection).orderBy(asc(courseSection.position)),
-        db.select().from(courseUnit).orderBy(asc(courseUnit.position)),
-        db.select().from(lesson).orderBy(asc(lesson.position), asc(lesson.id)),
+        db
+          .select({ section: courseSection })
+          .from(courseSection)
+          .innerJoin(coursePart, eq(courseSection.partId, coursePart.id))
+          .where(eq(coursePart.courseId, courseRow.id))
+          .orderBy(asc(courseSection.position))
+          .then((rows) => rows.map((r) => r.section)),
+        db
+          .select({ unit: courseUnit })
+          .from(courseUnit)
+          .innerJoin(courseSection, eq(courseUnit.sectionId, courseSection.id))
+          .innerJoin(coursePart, eq(courseSection.partId, coursePart.id))
+          .where(eq(coursePart.courseId, courseRow.id))
+          .orderBy(asc(courseUnit.position))
+          .then((rows) => rows.map((r) => r.unit)),
+        db
+          .select({ lesson: lesson })
+          .from(lesson)
+          .innerJoin(courseUnit, eq(lesson.unitId, courseUnit.id))
+          .innerJoin(courseSection, eq(courseUnit.sectionId, courseSection.id))
+          .innerJoin(coursePart, eq(courseSection.partId, coursePart.id))
+          .where(eq(coursePart.courseId, courseRow.id))
+          .orderBy(asc(lesson.position), asc(lesson.id))
+          .then((rows) => rows.map((r) => r.lesson)),
         completedLessonIds(userId),
         db
           .select({ badge: badgeAward.badge })
@@ -323,7 +445,10 @@ const { data, error } = await unwrap(apiClient.v1.learn.map.$get())`,
             }
           }),
         })),
-        totals: { lessons: lessons.length, completed: done.size },
+        totals: {
+          lessons: lessons.length,
+          completed: lessons.filter((l) => done.has(l.id)).length,
+        },
       }
       return c.json({ data })
     },
@@ -391,6 +516,7 @@ const { data, error } = await unwrap(apiClient.v1.learn.lesson[":id"].$get({ par
           unitTitle: courseUnit.title,
           sectionTitle: courseSection.title,
           partTitle: coursePart.title,
+          courseId: coursePart.courseId,
         })
         .from(lesson)
         .innerJoin(courseUnit, eq(lesson.unitId, courseUnit.id))
@@ -400,7 +526,7 @@ const { data, error } = await unwrap(apiClient.v1.learn.lesson[":id"].$get({ par
       if (!row) throw new ApiError(404, "NOT_FOUND", "Lesson not found")
 
       const [order, done, quiz] = await Promise.all([
-        orderedLessonIds(),
+        orderedLessonIds(row.courseId),
         completedLessonIds(userId),
         db
           .select({

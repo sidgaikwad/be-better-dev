@@ -27,6 +27,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
 import { toast } from "@/components/ui/toast"
+import { useActiveCourse } from "@/hooks/use-active-course"
 import { useSpeech } from "@/hooks/use-speech"
 import { apiClient, unwrap } from "@/lib/api/client"
 import { toSpeechSegments } from "@/lib/speech"
@@ -63,6 +64,7 @@ const lessonQueryOptions = (id: string) => ({
  */
 export function Audiobook() {
   const queryClient = useQueryClient()
+  const { courseId, ready } = useActiveCourse()
   const [currentId, setCurrentId] = useState<string | null>(null)
   const [continuous, setContinuous] = useState(true)
   // Set just before a lesson change that should start speaking on arrival, so
@@ -71,9 +73,12 @@ export function Audiobook() {
   const autoplayRef = useRef(false)
 
   const map = useQuery({
-    queryKey: ["learn", "map"],
+    enabled: ready,
+    queryKey: ["learn", "map", courseId ?? null],
     queryFn: async () => {
-      const { data, error } = await unwrap(apiClient.v1.learn.map.$get())
+      const { data, error } = await unwrap(
+        apiClient.v1.learn.map.$get({ query: courseId ? { course: courseId } : {} }),
+      )
       if (error) throw new Error(error.message)
       return data
     },

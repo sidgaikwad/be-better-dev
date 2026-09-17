@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.0.7
+
+[compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.6...v0.0.7)
+
+### 🩹 Fixes
+
+- **deps:** Clear the last qs and dompurify advisories ([#18](https://github.com/sidgaikwad/be-better-dev/pull/18))
+- **ci:** Measure build sizes by logical bytes, not du blocks ([#20](https://github.com/sidgaikwad/be-better-dev/pull/20))
+
+### 📖 Documentation
+
+- **audit:** Record the bun mechanics that decide the rung ([#21](https://github.com/sidgaikwad/be-better-dev/pull/21))
+- **audit:** Correct the rung guidance and add pin retirement ([#23](https://github.com/sidgaikwad/be-better-dev/pull/23))
+
+### ❤️ Contributors
+
+- Siddharth Gaikwad @sidgaikwad
+
 ## v0.0.6
 
 [compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.5...v0.0.6)
