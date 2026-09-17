@@ -1,8 +1,8 @@
 # Be-better-dev
 
-Courses you study like a game: spaced review, streaks, XP and badges. Two are on the shelf, and the
-switcher on the course map moves between them. Progress is per lesson, so neither one blocks the
-other.
+Courses you study like a game: spaced review, streaks, XP and badges. Two are on the shelf, 390
+lessons between them, and the switcher on the course map moves between them. Progress is per
+lesson, so neither one blocks the other.
 
 Built on top of [ZeroStarter](https://zerostarter.dev).
 
@@ -22,15 +22,19 @@ Docker to performance engineering.
 
 ## System Design: Interview to Production
 
-30 sections, following Alex Xu's _System Design Interview_ volumes 1 and 2. Lessons are being
-written; a section with none yet shows on the map as upcoming.
+30 sections, 134 lessons, following Alex Xu's _System Design Interview_ volumes 1 and 2. From how a
+system grows past one server, through the building blocks almost every design reuses, to thirty
+systems designed end to end.
 
-| Part                         | Sections | Covers                                                                               |
-| ---------------------------- | -------- | ------------------------------------------------------------------------------------ |
-| 1. Foundations               | 5        | scaling out, caching and CDNs, sharding, estimation, the interview framework         |
-| 2. Building blocks           | 4        | rate limiter, consistent hashing, key-value store, unique ID generator               |
-| 3. Systems on the whiteboard | 8        | URL shortener, crawler, notifications, news feed, chat, autocomplete, YouTube, Drive |
-| 4. Scale in the wild         | 13       | geospatial, message queues, metrics, stream aggregation, storage, payments, exchange |
+| Part                         | Sections | Lessons | Covers                                                                               |
+| ---------------------------- | -------- | ------- | ------------------------------------------------------------------------------------ |
+| 1. Foundations               | 5        | 26      | scaling out, caching and CDNs, sharding, estimation, the interview framework         |
+| 2. Building blocks           | 4        | 19      | rate limiter, consistent hashing, key-value store, unique ID generator               |
+| 3. Systems on the whiteboard | 8        | 34      | URL shortener, crawler, notifications, news feed, chat, autocomplete, YouTube, Drive |
+| 4. Scale in the wild         | 13       | 55      | geospatial, message queues, metrics, stream aggregation, storage, payments, exchange |
+
+Every lesson works its arithmetic on the page, names a tradeoff and takes a side, and closes with a
+design drill rather than a coding exercise.
 
 Every lesson closes with a predict-then-verify exercise and carries three quiz items. Answering
 them wrong is the point: misses re-enter the spaced-review queue sooner than hits.
