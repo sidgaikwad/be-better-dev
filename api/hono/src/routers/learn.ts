@@ -236,7 +236,7 @@ const { data, error } = await unwrap(apiClient.v1.learn.courses.$get())`,
     async (c) => {
       const { id: userId } = c.get("user")
       const [rows, lessons, done] = await Promise.all([
-        db.select().from(course).orderBy(asc(course.createdAt), asc(course.id)),
+        db.select().from(course).orderBy(asc(course.position), asc(course.id)),
         db
           .select({ courseId: coursePart.courseId, lessonId: lesson.id })
           .from(lesson)
@@ -319,13 +319,13 @@ const { data, error } = await unwrap(apiClient.v1.learn.map.$get({ query: { cour
     async (c) => {
       const { id: userId } = c.get("user")
       const { course: requested } = c.req.valid("query")
-      // No ?course= means the first course on the shelf, which keeps every
-      // caller written before the platform carried two of them working.
+      // No ?course= means the first course on the shelf, by authored position.
+      // Keeps every caller written before the platform carried two of them working.
       const [courseRow] = await db
         .select()
         .from(course)
         .where(requested ? eq(course.id, requested) : undefined)
-        .orderBy(asc(course.createdAt), asc(course.id))
+        .orderBy(asc(course.position), asc(course.id))
         .limit(1)
       if (!courseRow) {
         throw new ApiError(

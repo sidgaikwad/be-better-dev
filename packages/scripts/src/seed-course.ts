@@ -25,10 +25,17 @@ const seenCourses = new Set<string>()
 const seenSections = new Set<string>()
 const seenLessons = new Set<string>()
 
-for (const content of courses) {
+for (const [ci, content] of courses.entries()) {
   if (seenCourses.has(content.slug)) throw new Error(`duplicate course slug: ${content.slug}`)
   seenCourses.add(content.slug)
-  courseRows.push({ id: content.slug, title: content.title, description: content.description })
+  courseRows.push({
+    id: content.slug,
+    // Shelf order comes from the registry's array order, so reordering a course
+    // is a one-line edit in course/index.ts rather than a data migration.
+    position: ci,
+    title: content.title,
+    description: content.description,
+  })
 
   for (const [pi, part] of content.parts.entries()) {
     const partId = `${content.slug}/${part.slug}`
