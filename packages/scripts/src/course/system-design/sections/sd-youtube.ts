@@ -166,6 +166,56 @@ export const sdYoutube: SectionSeed = {
             },
           ],
         },
+        {
+          slug: "sd-yt-errors",
+          title: "When a long job fails",
+          summary:
+            "Recoverable against permanent, the per-component playbook, and why an output path derived from the attempt quietly leaks storage forever.",
+          contentFile: "sd-yt-errors.md",
+          quiz: [
+            {
+              kind: "mcq",
+              prompt: "What is the practical rule for classifying a transcoding failure?",
+              options: [
+                "Retry everything a fixed number of times",
+                "A failure about the input is permanent; a failure about the machine or network is transient",
+                "Anything reported by a worker is transient",
+                "Classify by how long the task ran before failing",
+              ],
+              answer: 1,
+              explanation:
+                "When you cannot tell, retry a bounded number of times: a few wasted attempts on a bad file cost less than rejecting a good one. Getting it wrong burns the fleet in one direction and rejects valid uploads in the other.",
+            },
+            {
+              kind: "mcq",
+              prompt:
+                "Why must the transcode output path be derived from the input rather than the attempt?",
+              options: [
+                "Storage systems reject timestamped filenames",
+                "A retry then replaces rather than accumulates, instead of orphaning every failed partial output forever",
+                "It keeps the CDN cache key stable",
+                "It allows chunks to be reordered",
+              ],
+              answer: 1,
+              explanation:
+                "Writing to a per-attempt path means the storage bill grows with your failure rate, and a partial file from a crashed worker is never cleaned up. Idempotency is designed rather than assumed.",
+            },
+            {
+              kind: "predict",
+              prompt:
+                "A worker finishes a chunk and writes it, then crashes before reporting. The task is retried elsewhere. What is the harm?",
+              options: [
+                "The chunk is duplicated in the final video",
+                "Wasted compute and nothing worse, given an input-derived output path",
+                "The video is corrupted at that chunk boundary",
+                "The scheduler deadlocks waiting for two completions",
+              ],
+              answer: 1,
+              explanation:
+                "The retry writes identical bytes to the same path. Avoiding the duplicate work needs leases and a storage check, which is coordination that can fail too. Idempotent retry is the simple correct default; deduplicating work is an optimization justified by a failure rate.",
+            },
+          ],
+        },
       ],
     },
   ],
