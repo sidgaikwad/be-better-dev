@@ -5,8 +5,13 @@ name: seed-course
 # release can ship a new course whose lessons do not exist yet. This is that step,
 # run deliberately rather than on every push.
 #
-# Needs a POSTGRES_URL secret in the chosen environment. The seeder writes content
-# tables only: progress, XP, badges, reviews and notes are never touched.
+# Needs a POSTGRES_URL secret on the chosen environment (Settings -> Environments ->
+# <env> -> Add environment secret). Use Neon's direct, non-pooled connection string:
+# a seed opens one long-lived session and the pooled endpoint can drop prepared
+# statements mid-run.
+#
+# The seeder writes content tables only: progress, XP, badges, reviews and notes are
+# never touched.
 
 on:
   workflow_dispatch:
@@ -36,6 +41,17 @@ jobs:
 
       - name: Install dependencies
         run: bun install --ignore-scripts
+
+      # Without this, a missing secret surfaces as a Bun connection stack trace forty
+      # lines deep, because the driver falls back to a local default and that closes.
+      - name: Check the secret is set
+        run: |
+          if [ -z "${{ secrets.POSTGRES_URL }}" ]; then
+            echo "::error::POSTGRES_URL is not set on the '${{ inputs.environment }}' environment."
+            echo "::error::Add it under Settings -> Environments -> ${{ inputs.environment }} -> Add environment secret."
+            exit 1
+          fi
+          echo "POSTGRES_URL is set."
 
       - name: Seed
         run: bun run db:seed
