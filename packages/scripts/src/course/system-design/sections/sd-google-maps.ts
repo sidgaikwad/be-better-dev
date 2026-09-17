@@ -115,8 +115,58 @@ export const sdGoogleMaps: SectionSeed = {
     {
       slug: "live-conditions",
       title: "Live conditions",
-      description: "Keeping a route correct while someone is driving it.",
+      description:
+        "The stream everything else is built on, and keeping a route correct while it is driven.",
       lessons: [
+        {
+          slug: "sd-gm-location-ingest",
+          title: "The location stream",
+          summary:
+            "Batching on the client and what it costs, why HTTP beats WebSocket on this path specifically, and why event time is not arrival time.",
+          contentFile: "sd-gm-location-ingest.md",
+          quiz: [
+            {
+              kind: "mcq",
+              prompt: "What does batching 15 location points into one request cost?",
+              options: [
+                "Accuracy, since intermediate points are dropped",
+                "Freshness: the derived traffic signal is up to 15 seconds stale, which is inside tolerance",
+                "Ordering, since points may arrive out of sequence",
+                "Nothing, since each point carries a timestamp",
+              ],
+              answer: 1,
+              explanation:
+                "No information is lost because each point is timestamped. Request volume drops fifteenfold, and the staleness is worth stating as a calculation rather than assuming.",
+            },
+            {
+              kind: "mcq",
+              prompt: "Why HTTP with keep-alive here, when the rerouting channel uses WebSocket?",
+              options: [
+                "HTTP is more reliable on mobile networks",
+                "This path is one small upload every 15 seconds with no server-initiated message, so a persistent bidirectional connection is cost without benefit",
+                "WebSocket cannot carry JSON arrays",
+                "Keep-alive is required for batching",
+              ],
+              answer: 1,
+              explanation:
+                "The opposite conclusion from the same system's rerouting channel, and worth stating as such: the protocol follows the traffic shape on that specific path rather than being chosen once for the product.",
+            },
+            {
+              kind: "predict",
+              prompt:
+                "A client is offline in a tunnel for two minutes, then reconnects and sends 120 buffered points. What are the two hazards?",
+              options: [
+                "Duplicate points and out-of-order delivery",
+                "A synchronized burst from everyone leaving the tunnel, and consumers treating arrival time as observation time",
+                "Buffer overflow and data loss",
+                "Clock skew and timestamp collision",
+              ],
+              answer: 1,
+              explanation:
+                "Jitter the reconnect send to spread the herd. And every consumer must key off the embedded timestamp: a traffic service using ingestion time concludes the road is congested now based on where people were two minutes ago. Event time against processing time is the central problem of the ad click aggregation section, and this is where it first bites.",
+            },
+          ],
+        },
         {
           slug: "sd-gm-live",
           title: "Adaptive ETA and rerouting",
