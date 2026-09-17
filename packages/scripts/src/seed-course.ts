@@ -8,95 +8,104 @@
 import { course, coursePart, courseSection, courseUnit, db, lesson, quizItem } from "@packages/db"
 import { notInArray } from "drizzle-orm"
 
-import { rustCourse } from "./course"
-
-const content = rustCourse
+import { courses } from "./course"
 
 type Row = Record<string, unknown>
+const courseRows: Row[] = []
 const partRows: Row[] = []
 const sectionRows: Row[] = []
 const unitRows: Row[] = []
 const lessonRows: Row[] = []
 const quizRows: Row[] = []
 
+// Section and lesson ids are bare slugs, so they must stay unique across every
+// course, not just within one: a lesson slug is a /learn/<slug> URL and a
+// section slug is the badge id behind `section:<id>`.
+const seenCourses = new Set<string>()
 const seenSections = new Set<string>()
 const seenLessons = new Set<string>()
 
-for (const [pi, part] of content.parts.entries()) {
-  const partId = `${content.slug}/${part.slug}`
-  partRows.push({
-    id: partId,
-    courseId: content.slug,
-    position: pi,
-    title: part.title,
-    description: part.description,
-  })
-  for (const [si, section] of part.sections.entries()) {
-    if (seenSections.has(section.slug)) throw new Error(`duplicate section slug: ${section.slug}`)
-    seenSections.add(section.slug)
-    sectionRows.push({
-      id: section.slug,
-      partId,
-      position: si,
-      title: section.title,
-      description: section.description,
-      badgeIcon: section.badgeIcon,
-      badgeTitle: section.badgeTitle,
+for (const content of courses) {
+  if (seenCourses.has(content.slug)) throw new Error(`duplicate course slug: ${content.slug}`)
+  seenCourses.add(content.slug)
+  courseRows.push({ id: content.slug, title: content.title, description: content.description })
+
+  for (const [pi, part] of content.parts.entries()) {
+    const partId = `${content.slug}/${part.slug}`
+    partRows.push({
+      id: partId,
+      courseId: content.slug,
+      position: pi,
+      title: part.title,
+      description: part.description,
     })
-    for (const [ui, unit] of section.units.entries()) {
-      const unitId = `${section.slug}/${unit.slug}`
-      unitRows.push({
-        id: unitId,
-        sectionId: section.slug,
-        position: ui,
-        title: unit.title,
-        description: unit.description,
+    for (const [si, section] of part.sections.entries()) {
+      if (seenSections.has(section.slug)) throw new Error(`duplicate section slug: ${section.slug}`)
+      seenSections.add(section.slug)
+      sectionRows.push({
+        id: section.slug,
+        partId,
+        position: si,
+        title: section.title,
+        description: section.description,
+        badgeIcon: section.badgeIcon,
+        badgeTitle: section.badgeTitle,
       })
-      for (const [li, lessonSeed] of unit.lessons.entries()) {
-        if (seenLessons.has(lessonSeed.slug)) {
-          throw new Error(`duplicate lesson slug: ${lessonSeed.slug}`)
-        }
-        seenLessons.add(lessonSeed.slug)
-        const markdown = await Bun.file(
-          `${import.meta.dir}/course/content/${lessonSeed.contentFile}`,
-        ).text()
-        lessonRows.push({
-          id: lessonSeed.slug,
-          unitId,
-          position: li,
-          title: lessonSeed.title,
-          summary: lessonSeed.summary,
-          content: markdown,
-          xp: lessonSeed.xp ?? 20,
+      for (const [ui, unit] of section.units.entries()) {
+        const unitId = `${section.slug}/${unit.slug}`
+        unitRows.push({
+          id: unitId,
+          sectionId: section.slug,
+          position: ui,
+          title: unit.title,
+          description: unit.description,
         })
-        for (const [qi, quiz] of lessonSeed.quiz.entries()) {
-          if (quiz.answer < 0 || quiz.answer >= quiz.options.length) {
-            throw new Error(`answer index out of range in ${lessonSeed.slug} quiz ${qi + 1}`)
+        for (const [li, lessonSeed] of unit.lessons.entries()) {
+          if (seenLessons.has(lessonSeed.slug)) {
+            throw new Error(`duplicate lesson slug: ${lessonSeed.slug}`)
           }
-          quizRows.push({
-            id: `${lessonSeed.slug}#${qi + 1}`,
-            lessonId: lessonSeed.slug,
-            position: qi,
-            kind: quiz.kind ?? "mcq",
-            prompt: quiz.prompt,
-            options: quiz.options,
-            answerIndex: quiz.answer,
-            explanation: quiz.explanation,
+          seenLessons.add(lessonSeed.slug)
+          // A course's slug is also its folder name under course/.
+          const markdown = await Bun.file(
+            `${import.meta.dir}/course/${content.slug}/content/${lessonSeed.contentFile}`,
+          ).text()
+          lessonRows.push({
+            id: lessonSeed.slug,
+            unitId,
+            position: li,
+            title: lessonSeed.title,
+            summary: lessonSeed.summary,
+            content: markdown,
+            xp: lessonSeed.xp ?? 20,
           })
+          for (const [qi, quiz] of lessonSeed.quiz.entries()) {
+            if (quiz.answer < 0 || quiz.answer >= quiz.options.length) {
+              throw new Error(`answer index out of range in ${lessonSeed.slug} quiz ${qi + 1}`)
+            }
+            quizRows.push({
+              id: `${lessonSeed.slug}#${qi + 1}`,
+              lessonId: lessonSeed.slug,
+              position: qi,
+              kind: quiz.kind ?? "mcq",
+              prompt: quiz.prompt,
+              options: quiz.options,
+              answerIndex: quiz.answer,
+              explanation: quiz.explanation,
+            })
+          }
         }
       }
     }
   }
 }
 
-await db
-  .insert(course)
-  .values({ id: content.slug, title: content.title, description: content.description })
-  .onConflictDoUpdate({
-    target: course.id,
-    set: { title: content.title, description: content.description },
-  })
-
+for (const row of courseRows) {
+  const { id, ...set } = row as typeof course.$inferInsert
+  await db
+    .insert(course)
+    .values({ id, ...set })
+    .onConflictDoUpdate({ target: course.id, set })
+}
 for (const row of partRows) {
   const { id, ...set } = row as typeof coursePart.$inferInsert
   await db
@@ -165,9 +174,14 @@ await db.delete(coursePart).where(
     partRows.map((r) => r.id as string),
   ),
 )
-await db.delete(course).where(notInArray(course.id, [content.slug]))
+await db.delete(course).where(
+  notInArray(
+    course.id,
+    courseRows.map((r) => r.id as string),
+  ),
+)
 
 console.log(
-  `seeded: ${partRows.length} parts, ${sectionRows.length} sections, ${unitRows.length} units, ${lessonRows.length} lessons, ${quizRows.length} quiz items`,
+  `seeded: ${courseRows.length} courses, ${partRows.length} parts, ${sectionRows.length} sections, ${unitRows.length} units, ${lessonRows.length} lessons, ${quizRows.length} quiz items`,
 )
 process.exit(0)
