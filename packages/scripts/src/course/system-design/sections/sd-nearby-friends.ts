@@ -116,8 +116,57 @@ export const sdNearbyFriends: SectionSeed = {
     {
       slug: "operating-the-cluster",
       title: "Operating the cluster",
-      description: "Stateless messages on stateful servers.",
+      description: "Stateful connections, stateless messages, and the care both demand.",
       lessons: [
+        {
+          slug: "sd-nf2-connections",
+          title: "Holding the connections",
+          summary:
+            "What happens on app start, why a TTL replaces presence tracking entirely, draining rather than killing a node, and what a crash really costs.",
+          contentFile: "sd-nf2-connections.md",
+          quiz: [
+            {
+              kind: "mcq",
+              prompt: "How does the system know a friend is inactive?",
+              options: [
+                "A presence service tracks connection state",
+                "Their location cache entry has expired, so the batched fetch simply does not return them",
+                "The pub/sub channel is unsubscribed",
+                "A heartbeat timeout marks them offline",
+              ],
+              answer: 1,
+              explanation:
+                "The TTL is the mechanism. A user goes offline by their entry expiring, which is state that cleans itself up rather than state someone has to maintain, and there is no separate presence check anywhere in the system.",
+            },
+            {
+              kind: "mcq",
+              prompt: "Why drain a WebSocket server rather than removing it?",
+              options: [
+                "Draining is required by the load balancer protocol",
+                "Every connection is a client that must re-run initialization elsewhere, so dropping them all at once is a burst on three other systems",
+                "In-flight messages would be lost",
+                "The pub/sub subscriptions cannot be transferred",
+              ],
+              answer: 1,
+              explanation:
+                "Mark the node draining so it takes no new connections, wait for the existing ones to close, then remove it. Deploys need the same care, which makes them slow, and the slowness is the feature.",
+            },
+            {
+              kind: "predict",
+              prompt:
+                "A server holding 200,000 connections crashes without draining. What is the real cost?",
+              options: [
+                "The lost traffic it was serving",
+                "The reconnection work: 200,000 friend-list queries, 80 million cache keys fetched and 80 million subscriptions in seconds",
+                "Dropped location updates during the outage",
+                "Rebalancing the pub/sub hash ring",
+              ],
+              answer: 1,
+              explanation:
+                "Reconnection is far more expensive than the connection was, so a crash becomes a load spike on three other systems. Defend with client backoff and jitter, and keep fleet headroom to absorb one node's clients.",
+            },
+          ],
+        },
         {
           slug: "sd-nf2-scaling-pubsub",
           title: "Scaling a stateful cluster",
