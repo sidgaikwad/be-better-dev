@@ -115,9 +115,57 @@ export const sdAdClickAggregation: SectionSeed = {
     },
     {
       slug: "scale-and-proof",
-      title: "Scale and proof",
-      description: "Making it fast, and proving the number is right.",
+      title: "Scale, serving and proof",
+      description: "Answering the queries, making it fast, and proving the number is right.",
       lessons: [
+        {
+          slug: "sd-ac-serving",
+          title: "Serving the counts",
+          summary:
+            "Why the filtering requirement is a data cube, computing top-N where the data already is, and why rankings do not compose over longer periods.",
+          contentFile: "sd-ac-serving.md",
+          quiz: [
+            {
+              kind: "mcq",
+              prompt: "Why does the filter-by-ip-user-country requirement change the design?",
+              options: [
+                "It requires storing personal data",
+                "Filters must be precomputed per combination of dimensions, and combinations grow as a power of two",
+                "It forces a relational database",
+                "It prevents partitioning by ad id",
+              ],
+              answer: 1,
+              explanation:
+                "Filtering raw events at query time is a scan per query at a billion events a day. Precomputing everything is exponential, so materialize the combinations people actually query, which requires measuring what is asked.",
+            },
+            {
+              kind: "mcq",
+              prompt: "Why compute the top 100 in the pipeline rather than at query time?",
+              options: [
+                "Query-time ranking cannot be cached",
+                "Finding the top of two million ads means examining all of them, and the aggregator already has every count for the minute",
+                "The database cannot sort by count",
+                "It reduces storage",
+              ],
+              answer: 1,
+              explanation:
+                "The same move as autocomplete's cached top-k per trie node: ranking happens where the data is already gathered, not at read time.",
+            },
+            {
+              kind: "predict",
+              prompt: "Can the top 100 for an hour be computed from 60 per-minute top-100 lists?",
+              options: [
+                "Yes, by summing counts across the lists",
+                "No: an ad ranked 150th every minute is absent from all of them but may beat an ad that spiked once",
+                "Yes, if the lists are deduplicated first",
+                "No, but only because the minutes may have different totals",
+              ],
+              answer: 1,
+              explanation:
+                "Top-N does not compose, because the per-minute lists discarded exactly the information needed. Store the full per-minute counts, which you compute for query 1 anyway, and derive rankings from them.",
+            },
+          ],
+        },
         {
           slug: "sd-ac-scale-and-correctness",
           title: "Hot ads, reconciliation and data monitoring",
