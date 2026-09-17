@@ -116,9 +116,58 @@ export const sdHotelReservation: SectionSeed = {
     },
     {
       slug: "service-boundaries",
-      title: "Service boundaries",
-      description: "Where to draw the lines, and what crossing one costs.",
+      title: "Lifecycle and boundaries",
+      description: "Running the booking backwards, and where to draw the lines around it.",
       lessons: [
+        {
+          slug: "sd-hr-lifecycle",
+          title: "Cancellation, expiry and price",
+          summary:
+            "Why inventory is held at creation rather than payment, the conditional update that makes cancellation run once, and where a quoted price must live.",
+          contentFile: "sd-hr-lifecycle.md",
+          quiz: [
+            {
+              kind: "mcq",
+              prompt: "Why does a pending_pay reservation need a timeout?",
+              options: [
+                "To free the idempotency key for reuse",
+                "Inventory is consumed at creation, so an abandoned payment page would hold a room forever",
+                "To let the price be re-quoted",
+                "Because payment providers expire their sessions",
+              ],
+              answer: 1,
+              explanation:
+                "Holding the room while payment is in flight is the right behaviour, and the expiry job is easy to forget. Its absence takes days to notice: the symptom is a hotel that appears full while having empty rooms.",
+            },
+            {
+              kind: "mcq",
+              prompt: "Why is double-cancelling worse than double-booking?",
+              options: [
+                "It refunds the customer twice",
+                "It releases inventory twice, which moves the count in the direction the constraint does not check, so it is silent",
+                "It corrupts the reservation primary key",
+                "It cannot be detected by reconciliation",
+              ],
+              answer: 1,
+              explanation:
+                "The constraint only checks that reserved does not exceed inventory. A conditional status update fixes it: zero rows updated means someone already cancelled, so the release is skipped. The state column does the job the idempotency key did at booking.",
+            },
+            {
+              kind: "predict",
+              prompt:
+                "Cancellation sets the status, releases inventory, then issues a refund, and the refund call fails. What should change?",
+              options: [
+                "Issue the refund first, before releasing inventory",
+                "Record the refund as owed in the same transaction, and let a monitored worker drive it to completion",
+                "Roll back the whole cancellation",
+                "Retry the refund inline until it succeeds",
+              ],
+              answer: 1,
+              explanation:
+                "The customer has lost the room and the money, and only they will notice. A call to an external system cannot be atomic with a database write, so write the obligation transactionally and discharge it asynchronously. Persist-before-promise, applied to money.",
+            },
+          ],
+        },
         {
           slug: "sd-hr-services",
           title: "When a transaction spans services",
