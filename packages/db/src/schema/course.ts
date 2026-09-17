@@ -19,6 +19,11 @@ import { user } from "@/schema/auth"
 
 export const course = pgTable("course", {
   id: text("id").primaryKey(),
+  // Shelf order, authored in the course registry rather than derived from
+  // createdAt. Defaulted because rows predate the column; the seeder writes the
+  // real value on every run. Not unique: reordering two courses would otherwise
+  // need a temporary value, and readers order by (position, id) for a total order.
+  position: integer("position").default(0).notNull(),
   title: text("title").notNull(),
   description: text("description").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
