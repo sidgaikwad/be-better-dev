@@ -7,7 +7,7 @@ export default function Page() {
     <PageShell size="lg">
       <PageHeader
         title="Course map"
-        description="Rust from first principles to production. Lessons unlock in order."
+        description="Pick a course and work down it. Lessons unlock in order."
       />
       <CourseMap />
     </PageShell>

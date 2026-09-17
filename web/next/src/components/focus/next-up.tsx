@@ -23,6 +23,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useActiveCourse } from "@/hooks/use-active-course"
 import { BREAK_MINUTES, FOCUS_LENGTHS, useFocusTimer } from "@/hooks/use-focus-timer"
 import { apiClient, unwrap } from "@/lib/api/client"
 import { cn } from "@/lib/utils"
@@ -40,11 +41,15 @@ type LessonTarget = { id: string; title: string; summary: string; xp: number }
 
 export function NextUp() {
   const timer = useFocusTimer()
+  const { courseId, ready } = useActiveCourse()
 
   const map = useQuery({
-    queryKey: ["learn", "map"],
+    enabled: ready,
+    queryKey: ["learn", "map", courseId ?? null],
     queryFn: async () => {
-      const { data, error } = await unwrap(apiClient.v1.learn.map.$get())
+      const { data, error } = await unwrap(
+        apiClient.v1.learn.map.$get({ query: courseId ? { course: courseId } : {} }),
+      )
       if (error) throw new Error(error.message)
       return data
     },
