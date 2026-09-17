@@ -4,9 +4,7 @@ The pipeline works. Now make it fast, safe and affordable, in that order of obvi
 
 Uploading a 1 GB file as one request means a failure at 95% starts over. Split it into GOP-aligned chunks on the client and upload them independently: a failure costs one chunk.
 
-Doing the split client-side also means the server receives chunks it can start transcoding immediately, so encoding begins before the upload finishes.
-
-Old clients cannot do this, and the fallback is to upload whole and split server-side. Worth mentioning, because a design that only works on current clients is not finished.
+Splitting client-side also means the server receives chunks it can start transcoding immediately, so encoding begins before the upload finishes. Old clients cannot do this, and the fallback is to upload whole and split server-side: a design that only works on current clients is not finished.
 
 ## Speed: upload centers near users
 
@@ -16,9 +14,7 @@ Same reasoning as the CDN for playback, in the other direction.
 
 ## Speed: queues between stages
 
-The naive pipeline is a chain: download, then encode, then upload to CDN. Each stage waits for the previous one, so the whole thing runs at the sum of the stages.
-
-Put message queues between them and the coupling breaks. The encoding module reads from a queue rather than waiting on the download module, so when work is available it proceeds, and each stage scales independently on its own queue depth.
+The naive pipeline is a chain: download, encode, upload to CDN, each stage waiting on the previous, so the whole runs at the sum of the stages. Put message queues between them and the encoding module reads from a queue rather than waiting on the download module, so each stage proceeds and scales on its own queue depth.
 
 This is Part 1's queue lesson applied inside a pipeline rather than between services, and the benefit is the same: stages fail and scale independently.
 
@@ -40,7 +36,7 @@ The safety property is that the URL authorizes exactly one object for a bounded 
 
 Three levels, in increasing strength and cost:
 
-- **Visual watermarking.** An overlay identifying the owner. Deters casual reuse, prevents nothing.
+- **Visual watermarking.** An overlay identifying the owner. Deters casual reuse only.
 - **AES encryption** with an authorization policy. The video is encrypted at rest and decrypted at playback for authorized viewers.
 - **DRM**: Apple FairPlay, Google Widevine, Microsoft PlayReady. Strongest, and it constrains which players and devices work, so it costs you reach.
 
@@ -53,7 +49,7 @@ The $150,000 a day. Views follow a long-tail distribution, so optimizations foll
 - **Distribute regionally.** A video popular only in Brazil does not need to be in European edges.
 - **Build your own CDN and partner with ISPs**, as Netflix does. An enormous project, and it pays off at enormous scale.
 
-Each is a bet on a measured access pattern, so say that you would analyze historical viewing before implementing any of them.
+Each is a bet on a measured access pattern, so say you would analyze historical viewing first.
 
 ## Predict, then verify
 
