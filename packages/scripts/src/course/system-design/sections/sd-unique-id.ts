@@ -115,8 +115,9 @@ export const sdUniqueId: SectionSeed = {
     },
     {
       slug: "clocks-and-availability",
-      title: "Clocks and availability",
-      description: "The assumption the whole design rests on, and what happens when it fails.",
+      title: "Clocks and exposure",
+      description:
+        "The assumption the whole design rests on, and what an id tells the people who see it.",
       lessons: [
         {
           slug: "sd-uid-clocks",
@@ -164,6 +165,56 @@ export const sdUniqueId: SectionSeed = {
               answer: 1,
               explanation:
                 "The forward step only makes that host's ids sort early and read wrong as creation times. The backward step produces 30 seconds of duplicates unless the generator refuses, which is an outage on one of twenty hosts and entirely survivable.",
+            },
+          ],
+        },
+        {
+          slug: "sd-uid-what-ids-leak",
+          title: "What an id tells people",
+          summary:
+            "Enumeration, competitors counting your growth, and separating the id the index wants from the id the world sees.",
+          contentFile: "sd-uid-what-ids-leak.md",
+          quiz: [
+            {
+              kind: "mcq",
+              prompt:
+                "Why is snowflake better than a plain counter against enumeration, but not a defense?",
+              options: [
+                "It is not better; both are equally guessable",
+                "Consecutive ids are not consecutive integers, but two records in the same millisecond on one machine still differ by 1",
+                "It encrypts the sequence field",
+                "It randomizes the machine bits per request",
+              ],
+              answer: 1,
+              explanation:
+                "The real fix is checking authorization on every read, since the underlying bug is an endpoint that loads by id without verifying ownership. Id design buys defense in depth, not the defense.",
+            },
+            {
+              kind: "mcq",
+              prompt: "How does snowflake reduce what a competitor learns from two of your ids?",
+              options: [
+                "Subtracting two ids gives elapsed milliseconds rather than a record count",
+                "Ids are not comparable across machines at all",
+                "The sign bit obscures the magnitude",
+                "It does not reduce it; the count is still recoverable",
+              ],
+              answer: 0,
+              explanation:
+                "With a global counter, subtracting two ids gives the number issued in between, which is a signup or order rate anyone can measure for free. Snowflake leaks when things happened instead of how many.",
+            },
+            {
+              kind: "predict",
+              prompt:
+                "To stop public ids leaking creation time, a colleague proposes encrypting each id with a fixed key. Does that work?",
+              options: [
+                "Yes, and it avoids an extra column",
+                "No: deterministic encryption preserves structure, so an attacker who creates records can map the two spaces without breaking the cipher",
+                "Yes, provided the key is rotated regularly",
+                "No, because encrypted ids cannot be indexed",
+              ],
+              answer: 1,
+              explanation:
+                "It also adds a key to manage, and rotating it invalidates every published id. A random external id in its own column leaks nothing because it encodes nothing. Prefer a random value to a reversible transformation whenever the goal is to carry no information.",
             },
           ],
         },
