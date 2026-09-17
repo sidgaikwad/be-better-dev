@@ -1,15 +1,17 @@
 # Be-better-dev
 
-A Rust course you study like a game: 45 sections, 256 lessons, spaced review, streaks, and badges.
-
-The curriculum runs from first principles (what a move copies, what an allocation costs) through
-concurrency and async, then builds a production email newsletter service following
-[Zero to Production in Rust](https://www.zero2prod.com/), and finishes with fifteen ecosystem
-sections from Docker to performance engineering.
+Courses you study like a game: spaced review, streaks, XP and badges. Two are on the shelf, and the
+switcher on the course map moves between them. Progress is per lesson, so neither one blocks the
+other.
 
 Built on top of [ZeroStarter](https://zerostarter.dev).
 
-## The curriculum
+## Rust: Zero to Production
+
+45 sections, 256 lessons. From first principles (what a move copies, what an allocation costs)
+through concurrency and async, then a production email newsletter service following
+[Zero to Production in Rust](https://www.zero2prod.com/), and fifteen ecosystem sections from
+Docker to performance engineering.
 
 | Part                     | Sections | Lessons | Covers                                                              |
 | ------------------------ | -------- | ------- | ------------------------------------------------------------------- |
@@ -18,14 +20,27 @@ Built on top of [ZeroStarter](https://zerostarter.dev).
 | 3. Zero to production    | 11       | 60      | the book chapter by chapter, then an axum port                      |
 | 4. Rust in the wild      | 15       | 83      | Docker, Kubernetes, queues, gRPC, wasm, AI, observability, and more |
 
+## System Design: Interview to Production
+
+30 sections, following Alex Xu's _System Design Interview_ volumes 1 and 2. Lessons are being
+written; a section with none yet shows on the map as upcoming.
+
+| Part                         | Sections | Covers                                                                               |
+| ---------------------------- | -------- | ------------------------------------------------------------------------------------ |
+| 1. Foundations               | 5        | scaling out, caching and CDNs, sharding, estimation, the interview framework         |
+| 2. Building blocks           | 4        | rate limiter, consistent hashing, key-value store, unique ID generator               |
+| 3. Systems on the whiteboard | 8        | URL shortener, crawler, notifications, news feed, chat, autocomplete, YouTube, Drive |
+| 4. Scale in the wild         | 13       | geospatial, message queues, metrics, stream aggregation, storage, payments, exchange |
+
 Every lesson closes with a predict-then-verify exercise and carries three quiz items. Answering
 them wrong is the point: misses re-enter the spaced-review queue sooner than hits.
 
-## Exercises
+## Rust exercises
 
-Reading about the borrow checker and arguing with it are different skills, so the lessons have a
-hands-on half in `exercises/`: a Cargo workspace with one crate per section, stubbed functions, and
-a test suite that is red on purpose. The suite is the specification.
+Reading about the borrow checker and arguing with it are different skills, so the Rust lessons have
+a hands-on half in `exercises/`: a Cargo workspace with one crate per section, stubbed functions,
+and a test suite that is red on purpose. The suite is the specification. The system design course
+has no crate; its hands-on half is the design drill that closes each lesson.
 
 ```bash
 cd exercises
