@@ -1,6 +1,6 @@
 {
   "name": "be-better-dev",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "private": true,
   "workspaces": [
     "api/*",
