@@ -4,9 +4,9 @@ import type { Hono } from "hono"
 import { upgradeWebSocket as bunUpgradeWebSocket, websocket } from "hono/bun"
 import { WebSocketServer } from "ws"
 
-// Vercel Functions can't run Bun.serve(), so on Vercel we serve WebSockets through the Node adapter (@hono/node-server + ws); everywhere else (local, Docker/self-host) Bun.serve() owns the socket via hono/bun.
-const onVercel = process.env.VERCEL === "1"
+import { onVercel } from "@/lib/runtime"
 
+// Vercel Functions can't run Bun.serve(), so on Vercel we serve WebSockets through the Node adapter (@hono/node-server + ws); everywhere else (local, Docker/self-host) Bun.serve() owns the socket via hono/bun.
 // Both adapters accept the same handler factory; the cast collapses their otherwise non-unionable signatures to one callable type. Registered on a route in index.ts.
 export const upgradeWebSocket = onVercel
   ? (nodeUpgradeWebSocket as typeof bunUpgradeWebSocket)
