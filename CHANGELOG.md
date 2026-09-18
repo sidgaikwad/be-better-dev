@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.0.8
+
+[compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.7...v0.0.8)
+
+### 🚀 Enhancements
+
+- Carry more than one course ([#26](https://github.com/sidgaikwad/be-better-dev/pull/26))
+- Add the system design course ([#28](https://github.com/sidgaikwad/be-better-dev/pull/28))
+- **course:** Write the first system design section ([#29](https://github.com/sidgaikwad/be-better-dev/pull/29))
+- **course:** Finish Part 1 of the system design course ([#30](https://github.com/sidgaikwad/be-better-dev/pull/30))
+- **course:** Part 2 of the system design course ([#31](https://github.com/sidgaikwad/be-better-dev/pull/31))
+- **course:** First five systems of Part 3 ([#32](https://github.com/sidgaikwad/be-better-dev/pull/32))
+- **course:** Finish Part 3 of the system design course ([#33](https://github.com/sidgaikwad/be-better-dev/pull/33))
+- **course:** The three geospatial systems of Part 4 ([#34](https://github.com/sidgaikwad/be-better-dev/pull/34))
+- **course:** The three data-pipeline systems of Part 4 ([#35](https://github.com/sidgaikwad/be-better-dev/pull/35))
+- **course:** Three storage and transaction systems of Part 4 ([#36](https://github.com/sidgaikwad/be-better-dev/pull/36))
+- **course:** Finish the system design course ([#37](https://github.com/sidgaikwad/be-better-dev/pull/37))
+- Authored course order, and drop the organization switcher ([#38](https://github.com/sidgaikwad/be-better-dev/pull/38))
+
+### ❤️ Contributors
+
+- Siddharth Gaikwad @sidgaikwad
+
 ## v0.0.7
 
 [compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.6...v0.0.7)

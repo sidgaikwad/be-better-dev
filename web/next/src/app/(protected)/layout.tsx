@@ -2,6 +2,8 @@ import { reachesConsole } from "@packages/auth/access"
 import { redirect } from "next/navigation"
 
 import { DashboardFooter, DashboardNav } from "@/components/dashboard/sidebar"
+import { ActiveCourseProvider } from "@/components/learn/active-course"
+import { CourseSwitcher } from "@/components/learn/course-switcher"
 import { SidebarShell } from "@/components/shell/sidebar-shell"
 import { auth } from "@/lib/auth"
 
@@ -12,13 +14,16 @@ export default async function Layout({ children }: { children: React.ReactNode }
   if (!session?.user) redirect("/")
 
   return (
-    <SidebarShell
-      nav={<DashboardNav />}
-      footer={
-        <DashboardFooter user={session.user} canAccessConsole={reachesConsole(session.user)} />
-      }
-    >
-      {children}
-    </SidebarShell>
+    <ActiveCourseProvider>
+      <SidebarShell
+        header={<CourseSwitcher />}
+        nav={<DashboardNav />}
+        footer={
+          <DashboardFooter user={session.user} canAccessConsole={reachesConsole(session.user)} />
+        }
+      >
+        {children}
+      </SidebarShell>
+    </ActiveCourseProvider>
   )
 }

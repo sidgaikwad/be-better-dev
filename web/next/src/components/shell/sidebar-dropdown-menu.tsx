@@ -31,7 +31,7 @@ function SidebarIdentity({ primary, secondary, secondaryClassName }: Omit<Identi
   )
 }
 
-// Shared sidebar footer dropdown used by the user menu and org switcher: a SidebarMenuButton trigger (leading visual + identity + expand chevron) over a content panel that repeats the identity as a header, then the consumer's items, keeping the trigger/content/identity markup in one place.
+// Shared sidebar dropdown used by the footer user menu and the header course switcher: a SidebarMenuButton trigger (leading visual + identity + expand chevron) over a content panel that repeats the identity as a header, then the consumer's items, keeping the trigger/content/identity markup in one place.
 export function SidebarDropdownMenu({
   trigger,
   header,
