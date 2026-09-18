@@ -11,6 +11,7 @@ import {
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 
+import { useActiveCourse } from "@/components/learn/active-course"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -23,7 +24,6 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useActiveCourse } from "@/hooks/use-active-course"
 import { BREAK_MINUTES, FOCUS_LENGTHS, useFocusTimer } from "@/hooks/use-focus-timer"
 import { apiClient, unwrap } from "@/lib/api/client"
 import { cn } from "@/lib/utils"

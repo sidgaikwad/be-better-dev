@@ -9,6 +9,7 @@ import {
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 
+import { useActiveCourse } from "@/components/learn/active-course"
 import { CourseSwitcher } from "@/components/learn/course-switcher"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -23,7 +24,6 @@ import {
 } from "@/components/ui/empty"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useActiveCourse } from "@/hooks/use-active-course"
 import { apiClient, unwrap } from "@/lib/api/client"
 import { cn } from "@/lib/utils"
 
