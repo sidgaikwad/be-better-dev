@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.0.9
+
+[compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.8...v0.0.9)
+
+### 🚀 Enhancements
+
+- **ci:** Add a manual workflow to seed course content ([#39](https://github.com/sidgaikwad/be-better-dev/pull/39))
+- **ci:** Seed course content on deploy, where the credential already lives ([#42](https://github.com/sidgaikwad/be-better-dev/pull/42))
+- **learn:** Move the course switcher into the sidebar ([#43](https://github.com/sidgaikwad/be-better-dev/pull/43))
+
+### 🩹 Fixes
+
+- **ci:** Fail the seed workflow clearly when the secret is missing ([#41](https://github.com/sidgaikwad/be-better-dev/pull/41))
+
+### ❤️ Contributors
+
+- Siddharth Gaikwad @sidgaikwad
+
 ## v0.0.8
 
 [compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.7...v0.0.8)
