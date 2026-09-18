@@ -10,7 +10,6 @@ import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 
 import { useActiveCourse } from "@/components/learn/active-course"
-import { CourseSwitcher } from "@/components/learn/course-switcher"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -28,7 +27,7 @@ import { apiClient, unwrap } from "@/lib/api/client"
 import { cn } from "@/lib/utils"
 
 export function CourseMap() {
-  const { courseId, setCourseId, ready } = useActiveCourse()
+  const { courseId, ready } = useActiveCourse()
   const { data, isPending, error, refetch } = useQuery({
     // Held until the stored course is known, so a learner mid-way through the
     // second course never watches the first one paint and then get replaced.
@@ -83,10 +82,7 @@ export function CourseMap() {
 
   return (
     <div className="space-y-8">
-      <div className="space-y-3">
-        <CourseSwitcher courseId={courseId} onSelect={setCourseId} />
-        <p className="text-muted-foreground text-sm">{data.course.description}</p>
-      </div>
+      <p className="text-muted-foreground text-sm">{data.course.description}</p>
       <div className="space-y-2">
         <div className="text-muted-foreground flex items-center justify-between text-sm">
           <span>

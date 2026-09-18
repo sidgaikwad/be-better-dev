@@ -7,7 +7,7 @@ export default function Page() {
     <PageShell size="lg">
       <PageHeader
         title="Course map"
-        description="Pick a course and work down it. Lessons unlock in order."
+        description="Work down the course. Lessons unlock in order, and the sidebar switches shelves."
       />
       <CourseMap />
     </PageShell>
