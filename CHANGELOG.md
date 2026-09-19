@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.10
+
+[compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.9...v0.0.10)
+
+### 🩹 Fixes
+
+- **api:** Keep the agent sign-in route off every deployment ([#44](https://github.com/sidgaikwad/be-better-dev/pull/44))
+
+### ❤️ Contributors
+
+- Siddharth Gaikwad @sidgaikwad
+
 ## v0.0.9
 
 [compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.8...v0.0.9)

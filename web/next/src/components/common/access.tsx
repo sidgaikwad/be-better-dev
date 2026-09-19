@@ -1,7 +1,7 @@
 "use client"
 
 import { site } from "@packages/config/site"
-import { RiGithubFill, RiGoogleFill, RiLayoutGridFill } from "@remixicon/react"
+import { RiFingerprintLine, RiGithubFill, RiGoogleFill, RiLayoutGridFill } from "@remixicon/react"
 import { useForm } from "@tanstack/react-form"
 import { useQuery } from "@tanstack/react-query"
 import { usePathname } from "next/navigation"
@@ -30,8 +30,12 @@ const formSchema = z.object({
 
 export function Access({ labelClassName }: { labelClassName?: string }) {
   const pathname = usePathname()
-  const [loader, setLoader] = useState<"email" | "github" | "google" | null>(null)
+  const [loader, setLoader] = useState<"email" | "github" | "google" | "passkey" | null>(null)
   const [open, setOpen] = useState(false)
+  // WebAuthn needs both a secure context and the platform API. A button that opens nothing is worse
+  // than no button, so this stays false until the browser confirms both. It is set in an effect
+  // rather than inline so the server render and the first client render agree.
+  const [passkeySupported, setPasskeySupported] = useState(false)
   // Next inlines NODE_ENV at build time: "development" only under `next dev`,
   // "production" for any `next build`. Auto-hides in deployments.
   const isDev = process.env.NODE_ENV === "development"
@@ -51,13 +55,19 @@ export function Access({ labelClassName }: { labelClassName?: string }) {
   const githubEnabled = data?.providers.includes("github") ?? false
   const googleEnabled = data?.providers.includes("google") ?? false
   const magicLinkEnabled = data?.providers.includes("magic-link") ?? false
-  const hasAlternatives = agentEnabled || githubEnabled || googleEnabled
+  // Two gates: the API must offer it, and this browser must be able to run the ceremony.
+  const passkeyEnabled = (data?.providers.includes("passkey") ?? false) && passkeySupported
+  const hasAlternatives = agentEnabled || githubEnabled || googleEnabled || passkeyEnabled
   const hasNoProviders = !magicLinkEnabled && !hasAlternatives
 
   useEffect(() => {
     setLoader(null)
     setOpen(false)
   }, [pathname])
+
+  useEffect(() => {
+    setPasskeySupported(window.isSecureContext && typeof window.PublicKeyCredential !== "undefined")
+  }, [])
 
   const form = useForm({
     defaultValues: {
@@ -165,6 +175,42 @@ export function Access({ labelClassName }: { labelClassName?: string }) {
                     Login (agents)
                   </Button>
                 </form>
+              )}
+              {passkeyEnabled && (
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="w-full"
+                  onClick={async () => {
+                    setLoader("passkey")
+                    // Unlike social sign-in there is no provider redirect: the ceremony completes in
+                    // place and only sets a cookie, so navigate manually. A hard navigation rather
+                    // than router.push so the server components re-read the new session.
+                    const res = await authClient.signIn.passkey({
+                      fetchOptions: {
+                        onSuccess: () => {
+                          window.location.href = `${config.app.url}/dashboard`
+                        },
+                      },
+                    })
+                    if (res?.error) {
+                      // Dismissing the system sheet surfaces as NotAllowedError/AbortError. That is
+                      // the user changing their mind, not a failure, so it gets no toast.
+                      const name = (res.error as { name?: string }).name
+                      if (name !== "NotAllowedError" && name !== "AbortError") {
+                        toast.add({
+                          title: res.error.message || "Could not sign in with a passkey",
+                          type: "error",
+                        })
+                      }
+                      setLoader(null)
+                    }
+                  }}
+                  disabled={loader === "passkey"}
+                >
+                  {loader === "passkey" ? <Spinner /> : <RiFingerprintLine className="size-5" />}
+                  Sign in with a passkey
+                </Button>
               )}
               {githubEnabled && (
                 <Button
