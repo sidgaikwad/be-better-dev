@@ -104,6 +104,12 @@ bun run dev
 Sign in locally with **Login → Login (agents)**, which needs `AGENT_SIGNIN_ENABLED=true` in
 `.env`; the route stays unmounted anywhere else.
 
+Passkeys work locally with no extra configuration: sign in once, then **user menu → Passkeys → Add
+a passkey**. The WebAuthn relying-party id is derived from the web origin, which is `localhost`
+here. `BETTER_AUTH_RP_ID` overrides it, and is only needed when web and api sit on sibling
+subdomains of a custom domain. A passkey is bound to the hostname it was created on, so any
+registered against a `*.vercel.app` host stop working if that host ever changes.
+
 ## Writing course content
 
 Sections live one module each in `packages/scripts/src/course/sections/`, with lesson bodies as

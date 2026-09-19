@@ -1,50 +1,55 @@
 # Passkey login: implementation spec
 
-Status: not started. Target: vBeta dev.
+Status: **shipped to canary 2026-09-19** in six PRs (#46, #48, #49, #50, #51, #52).
 Reference read: `~/sidd-oss/carbon` (hand-rolled WebAuthn on Supabase Auth).
 
-> **Read this first: upstream already built most of it.**
-> `nrjdalal/zerostarter` has a near-complete implementation on the **`feat/passkey`** branch
-> (closed PR #574, closed issue #594, ~1700 lines, 24 files). It was deferred, not rejected: the
-> author kept the branch deliberately so it could be resumed. It reaches the same conclusions this
-> spec does, including the `*.vercel.app` public-suffix rpID problem, which he hit in review and
-> fixed in `bf11b33`.
->
-> **It is a reference to read, not a branch you can merge.** This repo does not share git history
-> with zerostarter: our root commit is `19babe6 "ci(init): scaffold from zerostarter"` (2026-08-05,
-> 84 commits), theirs is `83ecd4d "feat: init awesomeness"` (2025-11-29, 1624 commits). No common
-> ancestor means no merge base, so `git merge`, `git rebase` and a clean `cherry-pick` are all off
-> the table. Port it by hand, file by file.
->
-> How far apart the two trees are, concretely: every UI file the branch touches sits at a different
-> path here (`components/access.tsx` vs our `components/common/access.tsx`,
-> `components/sidebar/user-menu.tsx` vs our `components/shell/sidebar-user-menu.tsx`), and their
-> `0002_passkey.sql` collides with our existing `0002_allowlist.sql`, so the migration renumbers
-> to `0007`.
->
-> Also stale: the branch is 358 commits behind canary (last touched 2026-06-27) and predates the
-> `cookieConfig` / `webOrigin` / `HONO_WEB_URL` refactor that both canary and this fork now carry,
-> so its rpID derivation is older than ours and Part 3 is the better base.
-> Upstream's own blocker was human e2e: the WebAuthn ceremony cannot be driven headlessly.
->
-> Practical way to read it:
->
-> ```bash
-> git clone https://github.com/nrjdalal/zerostarter /tmp/zs
-> git -C /tmp/zs diff origin/canary...origin/feat/passkey
-> ```
->
-> **Deltas worth taking from upstream over what Part 4 proposes:**
->
-> 1. `userVerification: "preferred"`, not `"required"`. Does not lock out users with no biometric.
-> 2. No `authenticatorAttachment: "platform"`, so security keys work too. Carbon's platform-only
->    choice was for their own reasons, not ours.
-> 3. `origin: env.HONO_TRUSTED_ORIGINS` (pass the array directly) is simpler than deriving one.
-> 4. `BETTER_AUTH_RP_ID` as an optional env escape hatch, rather than making `HONO_WEB_URL` required.
-> 5. A `tsdown` dts build hits **TS2883** because the plugin's inferred type leaks
->    `@simplewebauthn/server` types. Fix: re-export `AuthenticationResponseJSON`,
->    `PublicKeyCredentialCreationOptionsJSON` and `PublicKeyCredentialRequestOptionsJSON` from
->    `@packages/auth`. This one is invisible until the build fails.
+## What shipped
+
+| PR  | What                                                                                      |
+| --- | ----------------------------------------------------------------------------------------- |
+| #48 | `@better-auth/passkey` pinned exact to `1.6.25`, matching the installed `better-auth`     |
+| #49 | the `passkey` table, migration `0007_passkey.sql`, `credential_id` UNIQUE                 |
+| #50 | the plugin registered, rpID derived from the web origin, `BETTER_AUTH_RP_ID` escape hatch |
+| #51 | `passkeyClient()` and the "Sign in with a passkey" button                                 |
+| #52 | `/settings/passkeys`: list, add, rename, remove                                           |
+
+(#46 was the unrelated rate-limiter fix found on the way; see `redis.md`.)
+
+## The one thing still outstanding
+
+**Nobody has completed a real ceremony.** Everything up to the biometric prompt is verified:
+endpoints return 200, `rp.id` resolves to the web host in all three deployment shapes, options
+carry `residentKey: "required"` and `userVerification: "preferred"`. But Touch ID cannot be driven
+headlessly without a virtual authenticator, which is exactly what stalled upstream's own attempt
+(their issue #594).
+
+Someone on a Mac needs to: sign in, user menu, Passkeys, Add a passkey, approve with Touch ID,
+sign out, then "Sign in with a passkey". Until that happens the feature is shipped but unproven.
+
+## Deferred deliberately
+
+- **Conditional UI** (browser autofill on the email field). The nicest part and the fiddliest:
+  needs `autoComplete="email webauthn"`, an `AbortController` torn down on unmount, and an
+  `isConditionalMediationAvailable` probe. Its own PR when someone wants it.
+- **`lastUsedAt`.** The plugin has no such column. Would need an extra field plus a hook.
+- **better-auth 1.7.** `^1.6.33` resolves to 1.7.5, whose breaking changes include keying accounts
+  on `(issuer, accountId)` with a required `Account.issuer` backfill. Its own piece of work.
+
+## Deviations from the plan below, and why
+
+The spec that follows was written before the code and is kept for its reasoning. Three of its
+calls were overridden during implementation:
+
+1. **`userVerification`**: spec said `"required"` (carbon's choice), shipped `"preferred"`, so a
+   device with no biometric or PIN is not locked out.
+2. **`authenticatorAttachment: "platform"`**: spec proposed it, shipped without, so hardware
+   security keys work too.
+3. **`HONO_WEB_URL` becoming required**: spec said so, shipped with `BETTER_AUTH_RP_ID` as an
+   optional override instead, falling back to the first non-api trusted origin.
+
+Upstream `nrjdalal/zerostarter` has an abandoned WIP branch, `feat/passkey` (closed PR #574,
+closed issue #594). It reached the same conclusions and its choices informed 1 and 2 above. It
+could not be merged: this repo shares no git history with upstream.
 
 ---
 
