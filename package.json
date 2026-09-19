@@ -74,6 +74,7 @@
     "@remixicon/react": "^4.9.0",
     "@scalar/hono-api-reference": "^0.11.11",
     "@shadcn/react": "^0.2.1",
+    "@simplewebauthn/server": "^13.2.3",
     "@t3-oss/env-core": "^0.13.11",
     "@tailwindcss/postcss": "^4.3.3",
     "@takumi-rs/core-darwin-arm64": "^2.5.4",

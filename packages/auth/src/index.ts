@@ -1,9 +1,12 @@
+import { passkey as passkeyPlugin } from "@better-auth/passkey"
+import { site } from "@packages/config/site"
 import {
   account,
   db,
   invitation,
   member,
   organization,
+  passkey,
   session,
   team,
   teamMember,
@@ -11,6 +14,14 @@ import {
   verification,
 } from "@packages/db"
 import { env } from "@packages/env/auth"
+// Type-only, and re-exported at the bottom. The passkey plugin leaks these into the inferred type of
+// `auth`, which tsgo then cannot name from a bundled dts: TS2883, "not portable". Naming them here
+// gives the emitted .d.mts a reference it can resolve.
+import type {
+  AuthenticationResponseJSON,
+  PublicKeyCredentialCreationOptionsJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+} from "@simplewebauthn/server"
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import {
@@ -43,11 +54,18 @@ const nonApiOrigins = [
     }).filter((o) => o && o !== apiOrigin),
   ),
 ]
-const webOrigin = isPrivate
-  ? env.HONO_WEB_URL
-    ? new URL(env.HONO_WEB_URL).origin
-    : nonApiOrigins[0]
-  : undefined
+// The origin the browser actually loads. baseURL only needs it on a public suffix (below), but
+// passkeys bind to the page's own origin in every environment, so it is resolved unconditionally.
+const resolvedWebOrigin = env.HONO_WEB_URL ? new URL(env.HONO_WEB_URL).origin : nonApiOrigins[0]
+
+const webOrigin = isPrivate ? resolvedWebOrigin : undefined
+
+// WebAuthn binds a passkey to the relying-party id: a bare hostname that must equal the page's host
+// or be a registrable suffix of it. It is derived from the web origin, never the api's, because the
+// plugin would otherwise default it to baseURL's hostname, which IS the api outside a public suffix
+// and fails every ceremony. A public hosting suffix (*.vercel.app) cannot be shortened, so the full
+// host is the only valid value there; BETTER_AUTH_RP_ID overrides for sibling custom subdomains.
+const rpID = env.BETTER_AUTH_RP_ID ?? new URL(resolvedWebOrigin ?? env.HONO_APP_URL).hostname
 
 // HONO_WEB_URL names the web origin explicitly. Without it, a public-suffix host infers the first non-api HONO_TRUSTED_ORIGINS entry: with none distinct from the api, baseURL falls back to the api and cross-origin OAuth cannot complete; with several, it pins to whichever is listed first. Warn either way and point at HONO_WEB_URL.
 if (isPrivate && !env.HONO_WEB_URL && nonApiOrigins.length === 0) {
@@ -61,7 +79,7 @@ if (isPrivate && !env.HONO_WEB_URL && nonApiOrigins.length === 0) {
 }
 
 export type SocialProvider = "github" | "google"
-export type AuthProvider = SocialProvider | "magic-link"
+export type AuthProvider = SocialProvider | "magic-link" | "passkey"
 
 // A provider is enabled only when both of its OAuth credentials are set; a fork can ship with any subset (or none, relying on magic link).
 export const enabledSocialProviders: SocialProvider[] = [
@@ -79,6 +97,7 @@ export const auth = betterAuth({
       invitation,
       member,
       organization,
+      passkey,
       session,
       team,
       teamMember,
@@ -111,6 +130,20 @@ export const auth = betterAuth({
       adminRoles: CONSOLE_ROLES.filter((role) => roleAtLeast(role, ACCESS_ROLE)),
       roles: Object.fromEntries(CONSOLE_ROLES.map((role) => [role, userAc])),
     }),
+    passkeyPlugin({
+      rpID,
+      rpName: site.name,
+      // Pinning the expected origins is what makes verification mean anything: left unset the plugin
+      // falls back to the request's own Origin header, which is to say it trusts whatever it is told.
+      origin: env.HONO_TRUSTED_ORIGINS,
+      authenticatorSelection: {
+        // Discoverable, so the browser can offer a passkey before any email is typed.
+        residentKey: "required",
+        // "preferred", not "required": a device with no biometric or PIN can still enrol rather than
+        // being locked out of the feature entirely.
+        userVerification: "preferred",
+      },
+    }),
   ],
   socialProviders: {
     ...(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
@@ -141,9 +174,22 @@ export const magicLinkEnabled = (auth.options.plugins ?? []).some(
 )
 
 // The unified list of enabled sign-in providers the UI reads: social providers plus magic link when its server plugin is registered.
+export const passkeyEnabled = (auth.options.plugins ?? []).some(
+  (p) => (p.id as string) === "passkey",
+)
+
 export const enabledProviders: AuthProvider[] = [
   ...enabledSocialProviders,
   ...(magicLinkEnabled ? (["magic-link"] as const) : []),
+  ...(passkeyEnabled ? (["passkey"] as const) : []),
 ]
 
 export type Session = typeof auth.$Infer.Session
+
+// See the import above: these exist to make the emitted dts nameable, not because anything here
+// uses them directly.
+export type {
+  AuthenticationResponseJSON,
+  PublicKeyCredentialCreationOptionsJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+}
