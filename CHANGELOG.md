@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.0.11
+
+[compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.10...v0.0.11)
+
+### 🚀 Enhancements
+
+- **db:** Add the passkey table for WebAuthn credentials ([#49](https://github.com/sidgaikwad/be-better-dev/pull/49))
+- **auth:** Register the passkey plugin with a web-derived rpID ([#50](https://github.com/sidgaikwad/be-better-dev/pull/50))
+- **web:** Add passkey sign-in to the login dialog ([#51](https://github.com/sidgaikwad/be-better-dev/pull/51))
+- **web:** Add the passkeys settings page ([#52](https://github.com/sidgaikwad/be-better-dev/pull/52))
+
+### 🩹 Fixes
+
+- **api:** Share one rate-limit bucket for unattributable requests ([#46](https://github.com/sidgaikwad/be-better-dev/pull/46))
+
+### 📖 Documentation
+
+- **passkeys:** Record what shipped and what still needs a human ([#53](https://github.com/sidgaikwad/be-better-dev/pull/53))
+
+### ❤️ Contributors
+
+- Siddharth Gaikwad @sidgaikwad
+
 ## v0.0.10
 
 [compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.9...v0.0.10)
