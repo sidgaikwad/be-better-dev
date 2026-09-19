@@ -50,6 +50,13 @@
       "when": 1789680067067,
       "tag": "0006_cool_karnak",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789845785462,
+      "tag": "0007_passkey",
+      "breakpoints": true
     }
   ]
 }
