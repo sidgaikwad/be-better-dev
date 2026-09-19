@@ -4,6 +4,7 @@ import { env } from "@packages/env/web-next"
 import {
   RiArrowRightSLine,
   RiDashboardLine,
+  RiFingerprintLine,
   RiHome4Line,
   RiLogoutBoxLine,
   RiMessage2Line,
@@ -64,6 +65,12 @@ export function SidebarUserMenu({ user, area }: { user: User; area?: "dashboard"
             <RiArrowRightSLine className="text-muted-foreground ml-auto size-4" />
           </DropdownMenuItem>
         )}
+        {/* DropdownMenuItem hard-codes cursor-default, so a navigation item restores the pointer. */}
+        <DropdownMenuItem render={<Link href="/settings/passkeys" className="cursor-pointer" />}>
+          <RiFingerprintLine />
+          Passkeys
+          <RiArrowRightSLine className="text-muted-foreground ml-auto size-4" />
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         {env.NEXT_PUBLIC_USERJOT_URL && (
           <DropdownMenuItem
