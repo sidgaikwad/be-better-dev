@@ -24,6 +24,7 @@
     "@better-auth/passkey": "catalog:",
     "@packages/db": "workspace:*",
     "@packages/env": "workspace:*",
+    "@simplewebauthn/server": "catalog:",
     "better-auth": "catalog:",
     "drizzle-orm": "catalog:"
   },
