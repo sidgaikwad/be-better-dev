@@ -1,10 +1,30 @@
 import { findIp } from "@arcjet/ip"
 import { env } from "@packages/env/api-hono"
-import { hash, randomUUIDv7 } from "bun"
+import { hash } from "bun"
 import type { Context } from "hono"
 import { rateLimiter } from "hono-rate-limiter"
 
 import { jsonError } from "@/lib/error"
+
+// findIp returns "" when it cannot attribute the request to a client address. The previous fallback
+// minted a fresh key per request, which handed every unattributable request a bucket of its own: a
+// limiter that never limits. Share one bucket instead, so the failure is restrictive rather than
+// silent, and warn once so a deployment whose proxy strips the client address is visible in the logs
+// rather than quietly throttling everyone together.
+let warnedMissingClientIp = false
+
+function clientIpKey(c: Context): string {
+  const ip = findIp(c.req.raw)
+  if (ip) return `ip:${ip}`
+
+  if (!warnedMissingClientIp) {
+    warnedMissingClientIp = true
+    console.warn(
+      "[rate-limit] no client address on the request, so unattributable traffic shares one bucket. In production this means whatever sits in front of the API is not forwarding a client address.",
+    )
+  }
+  return "ip:unknown"
+}
 
 function generateRateLimitKey(
   c: Context,
@@ -17,7 +37,7 @@ function generateRateLimitKey(
   const apiKey = getApiKey?.(c)
   if (apiKey) return `apikey:${hash(apiKey).toString(16)}`
 
-  return `ip:${findIp(c.req.raw) || randomUUIDv7()}`
+  return clientIpKey(c)
 }
 
 interface RateLimiterConfig {
