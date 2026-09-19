@@ -10,6 +10,7 @@ import { logger } from "hono/logger"
 import { z } from "zod"
 
 import { errorHandler, globalErrorResponses, jsonError } from "@/lib/error"
+import { onVercel } from "@/lib/runtime"
 import { createServer, upgradeWebSocket } from "@/lib/server"
 import { rateLimiterMiddleware, requireFeature } from "@/middlewares"
 import { agentsRouter, authRouter, v1Router, waitlistRouter } from "@/routers"
@@ -53,7 +54,12 @@ const routes = app
     return c.json({ data })
   })
   .get("/headers", (c) => {
-    if (env.NODE_ENV !== "local" && env.NODE_ENV !== "development") {
+    // NODE_ENV alone is too weak a guard, for the same reason agent sign-in stopped relying on it:
+    // a deployment carrying NODE_ENV=local turns this on and echoes every request header back to
+    // the caller. That is not hypothetical, it was live on production until 2026-09-19. Vercel
+    // marks every deployment with VERCEL=1, so refusing there keeps this local however NODE_ENV
+    // ends up set.
+    if (onVercel || (env.NODE_ENV !== "local" && env.NODE_ENV !== "development")) {
       throw new HTTPException(403, { message: "Forbidden" })
     }
     const data = c.req.header()

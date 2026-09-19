@@ -6,6 +6,8 @@ import { HTTPException } from "hono/http-exception"
 import type { ContentfulStatusCode } from "hono/utils/http-status"
 import { z } from "zod"
 
+import { onVercel } from "@/lib/runtime"
+
 // Every code the API can put in the { error } envelope. Single source of truth: the TS union, the OpenAPI schema, and the web client all derive from this list. "ERROR" is the catch-all for an HTTPException whose status isn't mapped below.
 export const ERROR_CODES = [
   "AGENT_LOGIN_FAILED",
@@ -73,7 +75,9 @@ export const errorHandler = (err: Error, c: Context) => {
     return jsonError(c, err.status, code, err.message)
   }
 
-  const message = isLocal(env.NODE_ENV) ? err.message : "Internal Server Error"
+  // Same reasoning as /headers above: a deployment carrying NODE_ENV=local would otherwise return
+  // raw exception text (database errors, internal paths) to callers. Never surface it on a deploy.
+  const message = !onVercel && isLocal(env.NODE_ENV) ? err.message : "Internal Server Error"
   return jsonError(c, 500, "INTERNAL_SERVER_ERROR", message)
 }
 
