@@ -19,6 +19,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Spinner } from "@/components/ui/spinner"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { authClient } from "@/lib/auth/client"
+import { isAppShellPath } from "@/lib/shell"
 import { cn, isActive } from "@/lib/utils"
 
 const socialLinks = [
@@ -78,7 +79,8 @@ export function Navbar() {
     setToDashboard(false)
   }, [pathname])
 
-  if (pathname?.startsWith("/console") || pathname?.startsWith("/dashboard")) return null
+  // Every (protected)/(console) route renders SidebarShell, which already carries the brand, nav, and user menu; this fixed navbar would sit on top of that sidebar and the page heading.
+  if (isAppShellPath(pathname)) return null
 
   // A link with a `feature` is shown only when that feature is enabled; /hire has none, so it always shows (and is stripped from forks by the CLI).
   const allNavLinks: { href: string; label: string; external?: boolean; feature?: Feature }[] = [
