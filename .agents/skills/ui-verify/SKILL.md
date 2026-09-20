@@ -36,11 +36,10 @@ Done when Visual, Responsive, and Theme are each exercised (or consciously marke
 
 ## 4. Attach evidence to the PR
 
-Upload each screenshot to litterbox (a temporary host) and embed the returned URL in the PR; never commit a binary screenshot.
+Drag each screenshot into the PR description or a comment box on github.com. GitHub uploads it, hosts it on its own CDN, and writes the `![](...)` markdown for you. Never commit a binary screenshot.
 
-```bash
-curl -sS -F "reqtype=fileupload" -F "time=72h" -F "fileToUpload=@screenshot.png" \
-  https://litterbox.catbox.moe/resources/internals/api.php
-```
+This is the one step an agent cannot finish. The upload endpoint authenticates with the browser session, not a token, so `gh` cannot reach it: an agent writes the body, says where the files are, and leaves the drag to a human. Put them somewhere easy to drag from and name them for where they go (`before-leaderboard.png`, `after-leaderboard.png`).
 
-Valid `time`: `1h`, `12h`, `24h`, `72h`. The command prints the public URL. Done when every screenshot (before+after pairs for a visual change) has its URL embedded in the PR.
+Do not reach for a public paste host instead. The old instruction here was litterbox, which now answers 403 to everything including a plain homepage GET; 0x0.st has turned uploads off entirely. Both were temporary by design, so the links rotted out of merged PRs anyway, while a GitHub-hosted image lives as long as the PR. Shopping for another host also means publishing the screenshots somewhere the maintainer never chose, so ask first if GitHub is genuinely unavailable.
+
+Done when every screenshot (before+after pairs for a visual change) is embedded in the PR, or the PR says which files are still to be attached and where they are.
