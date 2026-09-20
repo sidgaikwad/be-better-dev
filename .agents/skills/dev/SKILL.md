@@ -47,6 +47,18 @@ curl -sf --retry 60 --retry-delay 1 --retry-connrefused "$API/api/health" > /dev
 
 Restart the same way after changing `@packages/*` exports the API consumes: they resolve to built dist, so run `bunx turbo run build --filter=@packages/<name>` first.
 
+## Stale-type trap
+
+Running the stack rebuilds `api/hono/dist`, and the web app types every `apiClient` call against that emitted `AppType`. `web/next/tsconfig.json` sets `incremental: true`, so `tsc` used to replay per-file diagnostics recorded against the previous dist. The symptom is `bun run check-types` failing in the hundreds with
+
+```
+Property 'v1' does not exist on type 'ClientRequest<string, string, { [Method: `$${Lowercase<string>}`]: Endpoint; }>'
+```
+
+at every `apiClient.v1.*` call site, while the same expression in a newly added file typechecks fine. Nothing is wrong with the code, and rebuilding does not clear it, because turbo restores cached build outputs with their original timestamps so `tsc` never sees the dist as changed.
+
+`@web/next`'s `check-types` script therefore passes `--incremental false`: a full check of the monorepo takes about 4 seconds and turbo already caches the task, so the cache only ever bought staleness. If you meet this on an older checkout, delete `web/next/tsconfig.tsbuildinfo` and re-run. Unions in `AppType` are normal (Hono's `.route()` returns `MergeSchemaPath<SubSchema, Path> | S`), so a union there is not the bug.
+
 ## Agent login
 
 Sign in as `LocalAgent` (local only, trusted Origin required). The route is gated on `AGENT_SIGNIN_ENABLED`: set it to `true` in `.env` first, or the route 404s. It is off by default, and it additionally refuses to mount wherever `VERCEL=1`, so no deployment exposes this session-minting route even if its `NODE_ENV` or the flag is set wrong.
