@@ -57,4 +57,4 @@ curl -sS -c cookies.txt -X POST -H "Origin: $WEB" "$API/api/agents/sign-in-as"
 curl -sS -b cookies.txt "$API/api/v1/user"
 ```
 
-In the browser: click **Login** in the top navbar (hidden on `/console` and `/dashboard`), then **Login (agents)** in the dialog (development only, with `AGENT_SIGNIN_ENABLED=true`).
+In the browser: click **Login** in the top navbar (hidden on every app-shell route, so start from a public page like `/`), then **Login (agents)** in the dialog (development only, with `AGENT_SIGNIN_ENABLED=true`).
