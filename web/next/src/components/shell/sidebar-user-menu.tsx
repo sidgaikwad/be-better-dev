@@ -15,6 +15,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
+import { ModeToggleMenu } from "@/components/common/mode-toggle"
 import { SidebarDropdownMenu } from "@/components/shell/sidebar-dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
@@ -28,7 +29,7 @@ function getInitials(name: string) {
   return name.slice(0, 2).toUpperCase()
 }
 
-// Shared sidebar user dropdown (avatar, identity, home link, feedback, sign out). Used by every sidebar footer so the menu and `getInitials` live in one place.
+// Shared sidebar user dropdown (avatar, identity, home link, passkeys, theme, feedback, sign out). Used by every sidebar footer so the menu and `getInitials` live in one place. The theme submenu lives here because the navbar that carries `ModeToggle` hides on every app-shell route.
 export function SidebarUserMenu({ user, area }: { user: User; area?: "dashboard" | "console" }) {
   const router = useRouter()
   const [signingOut, setSigningOut] = useState(false)
@@ -72,6 +73,7 @@ export function SidebarUserMenu({ user, area }: { user: User; area?: "dashboard"
           <RiArrowRightSLine className="text-muted-foreground ml-auto size-4" />
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        <ModeToggleMenu />
         {env.NEXT_PUBLIC_USERJOT_URL && (
           <DropdownMenuItem
             render={
