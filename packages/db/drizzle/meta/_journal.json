@@ -64,6 +64,13 @@
       "when": 1790007072337,
       "tag": "0008_two_factor",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790012261551,
+      "tag": "0009_two_factor_lockout",
+      "breakpoints": true
     }
   ]
 }
