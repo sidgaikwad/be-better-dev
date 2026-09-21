@@ -111,8 +111,8 @@ export const twoFactor = pgTable(
   "two_factor",
   {
     id: text("id").primaryKey(),
-    // The TOTP shared secret, base32. Stored in plaintext: 1.6.25 encrypts it only when
-    // totpOptions.storeSecret is configured with an encryptor, and it is not.
+    // The TOTP shared secret, encrypted with BETTER_AUTH_SECRET: the plugin runs it through
+    // symmetricDecrypt on every verify, so this column never holds a usable secret on its own.
     secret: text("secret").notNull(),
     // The whole set, one encoded string, not a row per code. The plugin owns the encoding.
     backupCodes: text("backup_codes").notNull(),
@@ -122,6 +122,13 @@ export const twoFactor = pgTable(
     // False only while an enrolment is mid-ceremony. Defaults true because the plugin writes the
     // row verified unless skipVerificationOnEnable put it there early.
     verified: boolean("verified").default(true).notNull(),
+    // The account-level lockout budget. The plugin increments it atomically on a failed sign-in
+    // challenge and clears it on a success, so it counts consecutive failures rather than lifetime
+    // ones, and caps guesses at a six-digit code. accountLockout defaults to 10 failures and a
+    // 900s lock; without these two columns that cap silently does not exist.
+    failedVerificationCount: integer("failed_verification_count").default(0).notNull(),
+    // Set when the budget is spent, checked on every challenge, lazily cleared once it has passed.
+    lockedUntil: timestamp("locked_until"),
     // Ours, not the plugin's. The settings screen has to say when a factor was enrolled, and a
     // reset in the console is worth dating. Defaulted, so the plugin's inserts stay valid.
     createdAt: timestamp("created_at").defaultNow().notNull(),
