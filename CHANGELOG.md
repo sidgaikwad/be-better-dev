@@ -1,5 +1,38 @@
 # Changelog
 
+## v0.0.13
+
+[compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.12...v0.0.13)
+
+### 🚀 Enhancements
+
+- **db:** Two-factor schema and migration 0008 ([#57](https://github.com/sidgaikwad/be-better-dev/pull/57))
+- **auth:** Register the two-factor plugin ([#59](https://github.com/sidgaikwad/be-better-dev/pull/59))
+- **auth:** Record sign_in_method on every session ([#60](https://github.com/sidgaikwad/be-better-dev/pull/60))
+- **auth:** The two-factor challenge, and both screens ([#62](https://github.com/sidgaikwad/be-better-dev/pull/62))
+- **auth:** Console Reset two-factor, for a lost phone ([#63](https://github.com/sidgaikwad/be-better-dev/pull/63))
+- **db:** The sso_provider table ([#65](https://github.com/sidgaikwad/be-better-dev/pull/65))
+- **auth:** Register the SSO plugin and guard its management endpoints ([#67](https://github.com/sidgaikwad/be-better-dev/pull/67))
+- **auth:** Record an SSO callback as the sso sign-in method ([#69](https://github.com/sidgaikwad/be-better-dev/pull/69))
+- **marketing:** A real home page, theme, shell, and the hero ([#68](https://github.com/sidgaikwad/be-better-dev/pull/68))
+- **marketing:** A real 3D book in the hero ([#70](https://github.com/sidgaikwad/be-better-dev/pull/70))
+- **marketing:** Why this exists, and how a lesson goes ([#71](https://github.com/sidgaikwad/be-better-dev/pull/71))
+- **marketing:** The audiobook spotlight and the closing call to action ([#72](https://github.com/sidgaikwad/be-better-dev/pull/72))
+- **marketing:** The questions worth answering first ([#73](https://github.com/sidgaikwad/be-better-dev/pull/73))
+
+### 🩹 Fixes
+
+- **db:** Add the two_factor lockout columns the plugin writes to ([#61](https://github.com/sidgaikwad/be-better-dev/pull/61))
+- **db:** Add the organization columns better-auth 1.7 expects ([#66](https://github.com/sidgaikwad/be-better-dev/pull/66))
+
+### 📦 Build
+
+- **deps:** Better-auth 1.7.5, one zod, fumadocs bump ([#64](https://github.com/sidgaikwad/be-better-dev/pull/64))
+
+### ❤️ Contributors
+
+- Siddharth Gaikwad @sidgaikwad
+
 ## v0.0.12
 
 [compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.11...v0.0.12)
