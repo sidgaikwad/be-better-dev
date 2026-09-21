@@ -22,13 +22,9 @@ prerequisite (the better-auth upgrade) is still being argued about.
 
 ## Next action
 
-Stand up Keycloak or Dex in Docker and complete one real OIDC sign-in. **Nothing has been through
-this end to end**: registration is verified only as far as the discovery fetch, which fails against
-a fake issuer because the host does not resolve. `docker-compose.yml` already exists to extend. Do
-it before the console UI, so the UI is built against a flow known to work.
-
-Then chain B steps 6 and 7: the console screen for registering a provider, and the email-first
-sign-in fork.
+Chain B steps 6 and 7: the console screen for registering a provider, and the email-first sign-in
+fork. The server side is proven end to end (below), so the UI can be built against a flow that is
+known to work rather than a hoped-for one. ~1.5 days.
 
 ---
 
@@ -561,8 +557,29 @@ integration test imports better-auth by path from `packages/auth/node_modules`.
 - **Admin reset**: confirm it clears the factor, that the next sign-in is unchallenged, and that it lands in the activity log.
 - **Lockout**: 10 bad codes, confirm the account locks and that a good code afterwards still fails
   until the window passes.
-- **OIDC**: run Keycloak or Dex in Docker as the IdP. `docker-compose.yml` already exists to extend.
-  Do not test against a real Okta tenant first.
+- **OIDC**: proven with Dex, and worth repeating exactly rather than re-deriving. Run it with a
+  static client whose redirect URI is `http://localhost:4100/api/auth/sso/callback/<providerId>`,
+  a static password for a user on the provider's domain, and `enablePasswordDB: true`. Start the
+  API with `BETTER_AUTH_SSO_ORIGINS=http://localhost:5556` or discovery is refused before it is
+  attempted. Do not test against a real Okta tenant first.
+
+  Two things that will waste an hour otherwise. **Start the flow from the same client that will
+  finish it**: `state` and the PKCE verifier live in a cookie on whoever called `/sign-in/sso`, so
+  kicking off with curl and finishing in a browser fails with `state_mismatch`, which reads like a
+  bug and is not. And **domain verification is real**: a freshly registered provider answers
+  `Provider domain has not been verified` until `domain_verified` is true, which on a throwaway
+  database means setting the column by hand.
+
+  What a full pass looks like, all six observed:
+  1. register through the guarded endpoint, and the plugin performs real discovery, hydrating the
+     authorize/token/jwks endpoints and turning PKCE on
+  2. unverified domain refuses the sign-in
+  3. verified domain returns an authorize URL carrying state, PKCE and `login_hint`
+  4. the IdP authenticates the person
+  5. the callback refuses with `signup disabled` when no account exists, which is
+     `disableImplicitSignUp` doing its job
+  6. with the account present, a session is minted and `session.sign_in_method` reads `sso`
+
 - **SAML**, if it happens: `samltest.id` or a local SimpleSAMLphp. Verify signature validation
   actually rejects a tampered assertion. That is the whole point of the library and the thing its
   advisories were about.
