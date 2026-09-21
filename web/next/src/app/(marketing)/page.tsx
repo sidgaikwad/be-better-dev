@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 
 import { Audience } from "@/components/marketing/audience"
 import { CallToAction } from "@/components/marketing/call-to-action"
+import { Faq } from "@/components/marketing/faq"
 import { Features } from "@/components/marketing/features"
 import { Hero } from "@/components/marketing/hero"
 import { Listen } from "@/components/marketing/listen"
@@ -18,6 +19,7 @@ export default function Home() {
       <Features />
       <Listen />
       <Steps />
+      <Faq />
       <CallToAction />
     </main>
   )
