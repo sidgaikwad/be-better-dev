@@ -78,6 +78,13 @@
       "when": 1790017686378,
       "tag": "0010_sso_provider",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790018358321,
+      "tag": "0011_org_1_7_columns",
+      "breakpoints": true
     }
   ]
 }
