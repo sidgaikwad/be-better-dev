@@ -22,11 +22,13 @@ prerequisite (the better-auth upgrade) is still being argued about.
 
 ## Next action
 
-Nothing in chain A is blocked. Step 9, enforcement, is the only piece left and it is **deferred on
-purpose**: it is the one that can lock people out, and decision 4 below (mandatory for everyone, or
-for console roles only) has not been made. Ask before building it.
+Stand up Keycloak or Dex in Docker and complete one real OIDC sign-in. **Nothing has been through
+this end to end**: registration is verified only as far as the discovery fetch, which fails against
+a fake issuer because the host does not resolve. `docker-compose.yml` already exists to extend. Do
+it before the console UI, so the UI is built against a flow known to work.
 
-Chain B is where the work goes next, and its prerequisite is bumping `better-auth` off 1.6.25.
+Then chain B steps 6 and 7: the console screen for registering a provider, and the email-first
+sign-in fork.
 
 ---
 
@@ -410,6 +412,21 @@ and `/sso/verify-domain`. Anyone who can register a provider for `domain` can ca
 sign-in for that domain. With registration locked behind the console this is less urgent, but turn
 it on anyway before the feature is ever self-serve.
 
+### The origin trap nobody mentions
+
+Registering a provider fetches its OIDC discovery document, and the plugin will only fetch from an
+origin in Better Auth's **single** `trustedOrigins` list. It has none of its own. That list is also
+handed to the passkey plugin as its expected origins, and pinning those is the whole reason a
+ceremony means anything, so widening it for an IdP would quietly widen what a passkey accepts.
+
+Hence `BETTER_AUTH_SSO_ORIGINS`, merged into the plugin option and nowhere else. Two lists, two
+meanings: browsers we serve, and servers we call.
+
+A related trap, and the reason this took a while to see: **turbo strips any env var not named in
+`globalEnv`**, so the schema reads `undefined` and the symptom is a trust failure under correct
+configuration. `BETTER_AUTH_RP_ID` had the same gap since passkeys shipped, so that escape hatch
+has never actually been reachable through a turbo build.
+
 ### Origins, again
 
 Everything the passkey work learned about origins applies to SSO callbacks. `baseURL` is the **web**
@@ -481,23 +498,33 @@ credentials. It is safe to ship unproven only because the gate does nothing for 
 
 ### Chain B: SSO
 
-1. **Upgrade or pin** (~2 h plus review). Hand-edit the catalog to exact `1.6.33` for
-   `better-auth` and `@better-auth/passkey`, plain `bun i`, verify zod stays single, run the full
-   check. Its own PR: nothing else in it.
-2. **Add `@better-auth/sso`** (~1 h). Exact `1.6.33`. Record the samlify dependency and the stale
-   pin in `.github/notes/dependencies.md`.
-3. **Schema and migration** (~1 h). `ssoProvider` table, `0009_sso_provider.sql`,
-   `providerId` UNIQUE, FK on `userId`.
-4. **Server plugin, OIDC only** (~3 h). `sso({ organizationProvisioning: { disabled: true },
-domainVerification: { enabled: true }, provisionUser, ...caps })`. Resolve the redirect URI from
-   the same web origin the passkey rpID uses.
-5. **Router guard** (~1 h). Refuse `/sso/register`, `/sso/update-provider` and `/sso/delete-provider`
-   below `ACCESS_ROLE` unless the plugin already does.
+1. ~~**Upgrade or pin**~~ (done, `#64`, and it cost far more than the 2 h estimated here).
+   Went to **1.7.5, not the recommended exact 1.6.33**, for two reasons. Exact pinning in the
+   catalog is impossible: `deps-manager.ts` rewrites a plain version to a caret on every install,
+   and `^1.6.33` floats to 1.7.5 anyway. And 1.6.33 leaks `better-call`'s middleware types into the
+   auth dts with no dependency able to name them, a list that grew as each was satisfied; 1.7.5
+   leaks only zod, which one exact override fixes. That override forced a fumadocs bump with it.
+   No migration: the `Account.issuer` backfill the passkeys note anticipated does not exist in
+   1.7.5. Follow-up `#66` added two organization columns 1.7 wants that `#64`'s own diff missed,
+   because the team fields are built inline rather than in the plugin's `schema:` block.
+2. ~~**Add `@better-auth/sso`**~~ (done, `#65`). samlify lands at 2.13.1, clear of all three of its
+   advisories; `bun audit` clean.
+3. ~~**Schema and migration**~~ (done, `#65`). `0010_sso_provider.sql`. `userId` is `set null`
+   rather than cascade, so deleting the admin who set SSO up cannot delete the connection and lock
+   out the domain.
+4. ~~**Server plugin, OIDC only**~~ (done). `disableImplicitSignUp: true` is the load-bearing
+   choice: the plugin's own `validateEmailDomain` gates only whether an assertion may LINK to an
+   existing account, not whether the sign-in proceeds, so without it a provider registered for one
+   domain could mint an account for another.
+5. ~~**Router guard**~~ (done). Confirmed necessary rather than precautionary: the plugin guards
+   all three management endpoints with `sessionMiddleware` alone, so any signed-in user could
+   register a provider for any domain.
 6. **Console UI** (~1 day). `console/(access)/sso/`: list, register, edit, delete, plus the
    domain-verification flow.
 7. **Sign-in UI** (~3 h). "Sign in with SSO", email typed first, domain looked up, redirect.
-8. **Docs** (~1 h). Including an operator runbook: what to give an IdP admin (redirect URI, issuer)
-   and what to get back (client id, secret, discovery URL).
+8. **Docs** (~1 h). Including an operator runbook: what to give an IdP admin (redirect URI,
+   issuer), what to get back (client id, secret, discovery URL), and that its origin must go in
+   `BETTER_AUTH_SSO_ORIGINS`.
 
 Total: roughly 2-3 days for OIDC. SAML adds 1-2 days and the samlify maintenance burden.
 

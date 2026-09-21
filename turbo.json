@@ -34,6 +34,11 @@
     // Server variables
     "NODE_ENV",
     "BETTER_AUTH_SECRET",
+    // Anything the env schemas read has to be named here or turbo strips it from the task's
+    // environment, and the schema sees undefined. BETTER_AUTH_RP_ID was missed when passkeys
+    // landed, so its escape hatch has never actually been reachable through a turbo build.
+    "BETTER_AUTH_RP_ID",
+    "BETTER_AUTH_SSO_ORIGINS",
     "GITHUB_CLIENT_ID",
     "GITHUB_CLIENT_SECRET",
     "GOOGLE_CLIENT_ID",
