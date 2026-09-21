@@ -10,6 +10,7 @@ import {
   session,
   team,
   teamMember,
+  twoFactor,
   user,
   verification,
 } from "@packages/db"
@@ -28,6 +29,7 @@ import {
   admin as adminPlugin,
   openAPI as openAPIPlugin,
   organization as organizationPlugin,
+  twoFactor as twoFactorPlugin,
 } from "better-auth/plugins"
 import { userAc } from "better-auth/plugins/admin/access"
 
@@ -101,6 +103,7 @@ export const auth = betterAuth({
       session,
       team,
       teamMember,
+      twoFactor,
       user,
       verification,
     },
@@ -144,6 +147,37 @@ export const auth = betterAuth({
         userVerification: "preferred",
       },
     }),
+    // READ THIS BEFORE BELIEVING 2FA IS ON: registering this plugin does not gate any sign-in
+    // here. Its own sign-in hook matches exactly three paths, `/sign-in/email`,
+    // `/sign-in/username` and `/sign-in/phone-number`, and this app serves none of them: there is
+    // no emailAndPassword config, no username plugin, no phone-number plugin. Everyone arrives
+    // through a social callback or a passkey. So what lands here is the enrolment half, the
+    // endpoints and the storage; the challenge is a hook we write ourselves, and until it exists
+    // a user can enrol an authenticator and never once be asked for a code. See
+    // .github/notes/sso-and-2fa.md, "The gap that decides everything".
+    twoFactorPlugin({
+      // What the authenticator app shows above the account, so it has to be the product name
+      // rather than a hostname: someone with three TOTP entries reads this to tell them apart.
+      issuer: site.name,
+      // Load-bearing, not a convenience. Enable and disable demand the user's password by
+      // default, and nobody in this database has one: sign-in is GitHub, Google or a passkey, and
+      // there is no credential account to check against. Without this every call to
+      // /two-factor/enable returns INVALID_PASSWORD, for every user, forever. The plugin still
+      // asks for a password when a credential account does exist, so a fork that turns on
+      // emailAndPassword keeps that check.
+      allowPasswordless: true,
+      // otpOptions is deliberately absent. It needs a `sendOTP` and this repo has no mailer, so
+      // there is nothing to send with. The plugin handles the absence properly rather than
+      // half-working: /two-factor/send-otp refuses with OTP_NOT_CONFIGURED, and the
+      // twoFactorMethods list a challenge returns only names "otp" when sendOTP is configured, so
+      // the UI is never offered a method it cannot complete. TOTP and backup codes are the two
+      // factors here. Backup codes are stored encrypted by the plugin's own default; the TOTP
+      // secret is not, because 1.6.25 encrypts it only under totpOptions.storeSecret.
+      //
+      // accountLockout is left at its default of on, 10 consecutive failures, 900s. It is
+      // account-scoped where the Redis rate limiter is request-scoped, so the two answer
+      // different questions and both are wanted.
+    }),
   ],
   socialProviders: {
     ...(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
@@ -176,6 +210,14 @@ export const magicLinkEnabled = (auth.options.plugins ?? []).some(
 // The unified list of enabled sign-in providers the UI reads: social providers plus magic link when its server plugin is registered.
 export const passkeyEnabled = (auth.options.plugins ?? []).some(
   (p) => (p.id as string) === "passkey",
+)
+
+// Deliberately not `twoFactorEnabled`, which is the per-user column the plugin owns on `user` and
+// means something entirely different: whether THIS person has enrolled. This one is about the
+// deployment, and reads true wherever the endpoints are mounted. Two names one letter apart, both
+// booleans, would be read wrong exactly once and that once would be a gate.
+export const twoFactorAvailable = (auth.options.plugins ?? []).some(
+  (p) => (p.id as string) === "two-factor",
 )
 
 export const enabledProviders: AuthProvider[] = [
