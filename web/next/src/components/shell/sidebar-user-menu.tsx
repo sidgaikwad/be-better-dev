@@ -5,6 +5,7 @@ import {
   RiArrowRightSLine,
   RiDashboardLine,
   RiFingerprintLine,
+  RiShieldKeyholeLine,
   RiHome4Line,
   RiLogoutBoxLine,
   RiMessage2Line,
@@ -70,6 +71,11 @@ export function SidebarUserMenu({ user, area }: { user: User; area?: "dashboard"
         <DropdownMenuItem render={<Link href="/settings/passkeys" className="cursor-pointer" />}>
           <RiFingerprintLine />
           Passkeys
+          <RiArrowRightSLine className="text-muted-foreground ml-auto size-4" />
+        </DropdownMenuItem>
+        <DropdownMenuItem render={<Link href="/settings/two-factor" className="cursor-pointer" />}>
+          <RiShieldKeyholeLine />
+          Two-factor
           <RiArrowRightSLine className="text-muted-foreground ml-auto size-4" />
         </DropdownMenuItem>
         <DropdownMenuSeparator />

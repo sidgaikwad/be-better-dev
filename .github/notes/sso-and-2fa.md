@@ -22,10 +22,11 @@ prerequisite (the better-auth upgrade) is still being argued about.
 
 ## Next action
 
-Chain A step 4: the gate. Our own `after` hook matching `/callback/:id` and
-`/passkey/verify-authentication`, replicating what the plugin's own handler does on the three paths
-it knows. `session.sign_in_method` is now populated, so the SSO exemption has something to read
-when it exists. ~4 h.
+Chain A step 8: the console reset action. "Reset two-factor" on the console user row, at
+`ACCESS_ROLE`, written to the activity log. It is the other half of recovery, and carbon's only
+one. ~2 h.
+
+After that the chain is done apart from step 9, enforcement, which is deferred pending decision 4.
 
 Chain B's prerequisite, bumping `better-auth` off 1.6.25, is independent and can start in parallel.
 
@@ -444,18 +445,20 @@ hostname change has to land.
    impersonation is named as itself so no exemption can match it; the agent route passes it
    explicitly, having no endpoint context at all. SSO's paths are deliberately absent until the
    plugin exists.
-4. **The gate** (~4 h). Our own `after` hook matching `/callback/:id` and `/sign-in/passkey`,
-   replicating the upstream handler: delete the session the sign-in just created, null
-   `newSession`, write the `2fa-<random>` verification row and the `2fa-attempts-*` counter, set
-   the signed two-factor cookie, return `twoFactorRedirect`. One file, upstream matcher quoted in
-   a comment.
-5. **Client plugin** (~10 min). `twoFactorClient()` in `web/next/src/lib/auth/client.ts`.
-6. **Enrolment UI** (~2.5 h). `/settings/two-factor`, modelled on
-   `web/next/src/components/settings/passkeys.tsx`: QR from the TOTP URI, confirm with a code, show
-   backup codes exactly once, regenerate, disable. Carbon's `TotpEnrollment.tsx` (128 lines) and
-   `_public+/mfa.tsx` (227 lines) are the shape to read.
-7. **Challenge screen** (~1.5 h). The page the `twoFactorRedirect` lands on. Six-box OTP input,
-   backup-code fallback, `redirectTo` preserved.
+4. ~~**The gate**~~ (done). `@/two-factor-gate`, matching `/callback/:id` and
+   `/passkey/verify-authentication`. Shaped as a plugin, because that is the only extension point
+   taking a matcher: the top-level `hooks` option is one middleware run on every request.
+   Trust-this-device is deliberately not replicated, so the UI never offers it: doing it correctly
+   means reproducing an HMAC and its rotation, and doing it subtly wrong means silently skipping
+   challenges.
+5. ~~**Client plugin**~~ (done). `twoFactorClient({ onTwoFactorRedirect })`, which routes a passkey
+   sign-in; a social callback is a browser navigation and is redirected server-side instead.
+6. ~~**Enrolment UI**~~ (done). `/settings/two-factor`. QR on a white plate in both themes, since an
+   inverted one does not scan, and the secret in full beneath it, since it is the fallback for
+   exactly the people who cannot scan.
+7. ~~**Challenge screen**~~ (done). `/two-factor`, outside `(protected)` because it is reached with
+   no session, and chromeless so the navbar offers no way around it. `redirectTo` is not preserved:
+   the original destination lives in the OAuth state, and everyone lands on the dashboard.
 8. **Console reset action** (~2 h). "Reset two-factor" on the console user row, at `ACCESS_ROLE`,
    written to the activity log. Carbon's `employees.reset-mfa.$employeeId.tsx` is the reference.
 9. **Enforcement, if wanted** (~2 h). A `requireTwoFactor` flag plus a full-screen enrol prompt.
@@ -464,6 +467,14 @@ hostname change has to land.
 10. **Docs** (~45 min). `web/next/content/docs/` and this file updated to a "what shipped" table.
 
 Total: roughly 12-15 h through step 8, plus 2 h for enforcement.
+
+**What is verified and what is not.** Enrolment, the challenge screen and the verify round trip were
+driven end to end in a browser against a disposable database: a real QR, a real TOTP computed from
+the secret, backup codes, disable, re-enrol. The gate's handler is covered by `tests/`, pointed at
+an endpoint an in-memory instance can reach. **Nobody has been through the gate on a real social
+callback or passkey sign-in**, because neither can be driven locally without the account owner's
+credentials. It is safe to ship unproven only because the gate does nothing for a user whose
+`twoFactorEnabled` is false, and that is every user until someone enrols.
 
 ### Chain B: SSO
 
