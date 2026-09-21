@@ -22,13 +22,11 @@ prerequisite (the better-auth upgrade) is still being argued about.
 
 ## Next action
 
-Chain A step 8: the console reset action. "Reset two-factor" on the console user row, at
-`ACCESS_ROLE`, written to the activity log. It is the other half of recovery, and carbon's only
-one. ~2 h.
+Nothing in chain A is blocked. Step 9, enforcement, is the only piece left and it is **deferred on
+purpose**: it is the one that can lock people out, and decision 4 below (mandatory for everyone, or
+for console roles only) has not been made. Ask before building it.
 
-After that the chain is done apart from step 9, enforcement, which is deferred pending decision 4.
-
-Chain B's prerequisite, bumping `better-auth` off 1.6.25, is independent and can start in parallel.
+Chain B is where the work goes next, and its prerequisite is bumping `better-auth` off 1.6.25.
 
 ---
 
@@ -459,12 +457,17 @@ hostname change has to land.
 7. ~~**Challenge screen**~~ (done). `/two-factor`, outside `(protected)` because it is reached with
    no session, and chromeless so the navbar offers no way around it. `redirectTo` is not preserved:
    the original destination lives in the OAuth state, and everyone lands on the dashboard.
-8. **Console reset action** (~2 h). "Reset two-factor" on the console user row, at `ACCESS_ROLE`,
-   written to the activity log. Carbon's `employees.reset-mfa.$employeeId.tsx` is the reference.
+8. ~~**Console reset action**~~ (done). "Reset two-factor" on the console user row, guarded by
+   `refuseTwoFactorReset` (the ban rank rule, and self is refused because settings is where you do
+   that with your own code in hand), written to the activity log. The `twoFactor` row is deleted
+   rather than the flag cleared, so re-enabling cannot resurrect a factor whose codes are on a
+   phone nobody has.
 9. **Enforcement, if wanted** (~2 h). A `requireTwoFactor` flag plus a full-screen enrol prompt.
    Carbon's `MfaEnrollmentRequired.tsx` is 242 lines and shows what "no way past it" looks like.
    Fail open on lookup errors. Defer unless decision 4 says yes.
-10. **Docs** (~45 min). `web/next/content/docs/` and this file updated to a "what shipped" table.
+10. **Docs** (~45 min). `web/next/content/docs/` still has no two-factor page: this file and the
+    PR bodies are the record so far. Worth writing when enforcement is decided, so the user-facing
+    page does not have to be rewritten a week later.
 
 Total: roughly 12-15 h through step 8, plus 2 h for enforcement.
 

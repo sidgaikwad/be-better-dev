@@ -19,6 +19,11 @@ export const banSummary = (email: string) => `Banned ${email}, ending their sess
 
 export const unbanSummary = (email: string) => `Unbanned ${email}`
 
+// Says what was taken away, not merely that something happened: this is the row an auditor reads
+// when asking who removed a second factor from an account, and "reset" alone does not answer it.
+export const twoFactorResetSummary = (email: string) =>
+  `Removed the authenticator app from ${email}, so their next sign-in asks for no code`
+
 export const allowlistAddSummary = (value: string) => `Added ${value} to the allowlist`
 
 export const allowlistRemoveSummary = (value: string) => `Removed ${value} from the allowlist`

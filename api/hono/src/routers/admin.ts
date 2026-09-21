@@ -1,6 +1,6 @@
 import { sValidator } from "@hono/standard-validator"
 import type { Session } from "@packages/auth"
-import type { BanRefusal, RoleChangeRefusal } from "@packages/auth/access"
+import type { BanRefusal, RoleChangeRefusal, TwoFactorResetRefusal } from "@packages/auth/access"
 import {
   ALLOWLIST_KINDS,
   CONSOLE_ROLES,
@@ -8,6 +8,7 @@ import {
   parseAllowlistRule,
   refuseBan,
   refuseRoleChange,
+  refuseTwoFactorReset,
 } from "@packages/auth/access"
 import { ACTIVITY_ACTIONS } from "@packages/config/console"
 import {
@@ -19,6 +20,8 @@ import {
   db,
   recordActivity,
   roleChangeSummary,
+  twoFactor,
+  twoFactorResetSummary,
   session,
   unbanSummary,
   user,
@@ -88,6 +91,11 @@ const ROLE_CHANGE_MESSAGES: Record<RoleChangeRefusal, string> = {
 const BAN_MESSAGES: Record<BanRefusal, string> = {
   outranked: "You can only ban people below your own role.",
   self: "You cannot ban yourself.",
+}
+
+const TWO_FACTOR_RESET_MESSAGES: Record<TwoFactorResetRefusal, string> = {
+  outranked: "You can only reset two-factor for people below your own role.",
+  self: "Turn your own two-factor off from settings, where it asks for a code.",
 }
 
 const allowlistSchema = z.object({
@@ -162,6 +170,9 @@ const roleBatchSchema = batchInput({ role: z.enum(CONSOLE_ROLES) })
 
 const statusBatchSchema = batchInput({ banned: z.boolean() })
 
+// No payload beyond the ids: a reset has one direction. There is no "give them a factor back".
+const twoFactorResetBatchSchema = batchInput({})
+
 const waitlistBatchSchema = batchInput({})
 
 const activityQuerySchema = z.object({
@@ -188,6 +199,7 @@ const asUserResponse = (row: {
   lastActive?: Date | null
   name: string
   role: string | null
+  twoFactorEnabled?: boolean
 }) => ({
   ...row,
   banned: row.banned ? true : false,
@@ -214,6 +226,9 @@ const userSchema = z.object({
     .meta({ format: "date-time", example: "2026-01-21T13:06:25.712Z" }),
   name: z.string().meta({ example: "John Doe" }),
   role: z.enum(CONSOLE_ROLES).meta({ example: "user" }),
+  // Optional for the same reason as lastActive: only the list selects it, and a reader that did not
+  // ask gets no key rather than a false asserting "no authenticator".
+  twoFactorEnabled: z.boolean().optional().meta({ example: false }),
 })
 
 const sortColumns = {
@@ -312,6 +327,9 @@ const { data, error } = await unwrap(
             lastActive: lastActiveByUser.lastActive,
             name: user.name,
             role: user.role,
+            // Read so the row menu can offer a reset only to someone who has a factor to lose,
+            // rather than an item whose every use is a no-op.
+            twoFactorEnabled: user.twoFactorEnabled,
           })
           .from(user)
           .leftJoin(lastActiveByUser, eq(lastActiveByUser.userId, user.id))
@@ -558,6 +576,103 @@ const { data, error } = await unwrap(
         // One sweep and one insert for the whole set, rather than two statements per row inside the transaction holding the owner lock.
         if (swept.length > 0) {
           await tx.delete(session).where(inArray(session.userId, swept))
+        }
+        await recordActivity(tx, records)
+        return answerFor(targets, outcomes)
+      })
+      return c.json({ data: { results } })
+    },
+  )
+  .post(
+    "/users/two-factor/reset",
+    describeRoute({
+      tags: ["Admin"],
+      description:
+        "Remove the authenticator app from a set of accounts, for someone who has lost their phone. Guards run per account, so some can reset while others are refused. The person's next sign-in asks for no code, and they enrol again from settings.",
+      ...({
+        "x-codeSamples": [
+          {
+            lang: "typescript",
+            label: "hono/client",
+            source: `import { apiClient, unwrap } from "@/lib/api/client"
+
+const { data, error } = await unwrap(
+  apiClient.v1.admin.users["two-factor"].reset.$post({ json: { ids } }),
+)`,
+          },
+        ],
+      } as object),
+      responses: {
+        200: {
+          description: "OK",
+          content: { "application/json": { schema: resolver(batchResponseSchema) } },
+        },
+        ...validationErrorResponses,
+        ...authErrorResponses,
+        ...forbiddenErrorResponses,
+      },
+    }),
+    sValidator("json", twoFactorResetBatchSchema, (result) => {
+      if (!result.success) {
+        throw new ApiError(400, "VALIDATION_ERROR", "Invalid input", { issues: result.error })
+      }
+    }),
+    async (c) => {
+      const actor = c.get("user")
+      const { ids } = c.req.valid("json")
+      const targets = uniqueIds(ids)
+
+      const results = await db.transaction(async (tx) => {
+        const rows = await tx.select().from(user).where(inArray(user.id, targets))
+        const byId = new Map(rows.map((row) => [row.id, row]))
+        const outcomes = new Map<string, BatchOutcome>()
+        const records: { action: "user.two-factor.reset"; actor: typeof actor; summary: string }[] =
+          []
+        // Id order, like the routes above, so two admins acting on overlapping selections queue on
+        // the same row locks rather than deadlocking on opposite orders. No owner lock is taken:
+        // this route cannot change anyone's rung and cannot leave the install without a reachable
+        // owner, so it has nothing to count under one.
+        for (const id of [...targets].sort()) {
+          const target = byId.get(id)
+          if (!target) {
+            outcomes.set(id, refused(id, "NOT_FOUND", "User not found"))
+            continue
+          }
+          const refusal = refuseTwoFactorReset({
+            actorRole: actor.role,
+            isSelf: actor.id === target.id,
+            targetRole: target.role,
+          })
+          if (refusal) {
+            outcomes.set(id, refused(id, "FORBIDDEN", TWO_FACTOR_RESET_MESSAGES[refusal]))
+            continue
+          }
+          const [row] = await tx
+            .update(user)
+            .set({ twoFactorEnabled: false })
+            // The rung is the qual, as everywhere else here: a promotion landing between the read
+            // and this write means the guard weighed the wrong rank, so the row is reported raced
+            // rather than reset.
+            .where(
+              and(
+                eq(user.id, id),
+                target.role === null ? isNull(user.role) : eq(user.role, target.role),
+              ),
+            )
+            .returning(WRITTEN_ROW)
+          if (!row) {
+            outcomes.set(id, raced(id))
+            continue
+          }
+          // The flag alone would leave the secret and the backup codes in place, so re-enabling
+          // would silently resurrect a factor whose codes are on a phone nobody has. The row goes.
+          await tx.delete(twoFactor).where(eq(twoFactor.userId, id))
+          records.push({
+            action: "user.two-factor.reset",
+            actor,
+            summary: twoFactorResetSummary(row.email),
+          })
+          outcomes.set(id, { id, ok: true })
         }
         await recordActivity(tx, records)
         return answerFor(targets, outcomes)

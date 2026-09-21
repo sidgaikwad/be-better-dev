@@ -5,6 +5,7 @@ export const ACTIVITY_ACTIONS = [
   "allowlist.remove",
   "role.change",
   "user.ban",
+  "user.two-factor.reset",
   "user.unban",
   "waitlist.remove",
 ] as const

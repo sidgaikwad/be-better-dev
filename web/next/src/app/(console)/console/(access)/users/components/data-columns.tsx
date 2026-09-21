@@ -1,7 +1,7 @@
 "use client"
 "use no memo"
 
-import { refuseBan } from "@packages/auth/access"
+import { refuseBan, refuseTwoFactorReset } from "@packages/auth/access"
 import { RiMoreLine } from "@remixicon/react"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { InferResponseType } from "hono/client"
@@ -47,6 +47,7 @@ export const usersColumnConfig: Record<string, ColumnConfig> = {
 
 export const usersColumns = (
   onSetStatus: (users: ConsoleUser[], banned: boolean) => void,
+  onResetTwoFactor: (users: ConsoleUser[]) => void,
 ): ColumnDef<ConsoleUser>[] => [
   selectColumn((row) => row.email),
   {
@@ -123,13 +124,16 @@ export const usersColumns = (
     cell: ({ row }) => {
       const { canWrite, role: viewerRole, viewerId } = useConsoleRole()
       if (!canWrite) return null
+      const actorTarget = {
+        actorRole: viewerRole,
+        isSelf: row.original.id === viewerId,
+        targetRole: row.original.role,
+      }
       // The same guard the API asks: an owner's row, and your own, offer no ban rather than one that can only be refused.
-      const canBan =
-        refuseBan({
-          actorRole: viewerRole,
-          isSelf: row.original.id === viewerId,
-          targetRole: row.original.role,
-        }) === null
+      const canBan = refuseBan(actorTarget) === null
+      // Same rank question, plus one of fact: someone with no authenticator has nothing to reset, so the item is absent rather than a no-op.
+      const canResetTwoFactor =
+        row.original.twoFactorEnabled === true && refuseTwoFactorReset(actorTarget) === null
       return (
         <DropdownMenu>
           <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
@@ -145,6 +149,11 @@ export const usersColumns = (
               <DropdownMenuItem onClick={() => copyToClipboard(row.original.email, "Email copied")}>
                 Copy email
               </DropdownMenuItem>
+              {canResetTwoFactor && (
+                <DropdownMenuItem onClick={() => onResetTwoFactor([row.original])}>
+                  Reset two-factor
+                </DropdownMenuItem>
+              )}
               {canBan &&
                 (row.original.banned ? (
                   <DropdownMenuItem onClick={() => onSetStatus([row.original], false)}>
