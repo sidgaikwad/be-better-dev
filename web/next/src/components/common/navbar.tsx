@@ -91,7 +91,9 @@ export function Navbar() {
   const navLinks = allNavLinks.filter((link) => !link.feature || features[link.feature])
 
   return (
-    <header className="bg-background fixed top-0 left-0 z-50 w-full border-b">
+    // Translucent rather than solid: the landing hero runs its aurora up behind the
+    // bar, and a solid strip would cut a flat band across the top of it.
+    <header className="bg-background/70 fixed top-0 left-0 z-50 w-full border-b backdrop-blur-xl">
       <div className="flex min-h-14 items-center justify-between pr-5 pl-3.5">
         <Link href="/" className="flex items-center gap-2 font-bold">
           {site.name}
