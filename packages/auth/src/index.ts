@@ -1,4 +1,5 @@
 import { passkey as passkeyPlugin } from "@better-auth/passkey"
+import { sso as ssoPlugin } from "@better-auth/sso"
 import { site } from "@packages/config/site"
 import {
   account,
@@ -9,6 +10,7 @@ import {
   passkey,
   session,
   team,
+  ssoProvider,
   teamMember,
   twoFactor,
   user,
@@ -91,9 +93,16 @@ export const enabledSocialProviders: SocialProvider[] = [
   ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET ? (["google"] as const) : []),
 ]
 
+// Better Auth has one trustedOrigins and the SSO plugin has no list of its own, so an identity
+// provider's discovery document can only be fetched if its origin is in that one list. Merged here
+// rather than by widening HONO_TRUSTED_ORIGINS, because that variable is still handed to the
+// passkey plugin as its expected origins, and a passkey ceremony must not start accepting an
+// origin just because someone registered an IdP there.
+const ssoOrigins = env.BETTER_AUTH_SSO_ORIGINS ?? []
+
 export const auth = betterAuth({
   baseURL: webOrigin ?? env.HONO_APP_URL,
-  trustedOrigins: env.HONO_TRUSTED_ORIGINS,
+  trustedOrigins: [...new Set([...env.HONO_TRUSTED_ORIGINS, ...ssoOrigins])],
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: {
@@ -103,6 +112,7 @@ export const auth = betterAuth({
       organization,
       passkey,
       session,
+      ssoProvider,
       team,
       teamMember,
       twoFactor,
@@ -201,6 +211,36 @@ export const auth = betterAuth({
       // account-scoped where the Redis rate limiter is request-scoped, so the two answer
       // different questions and both are wanted.
     }),
+    // Enterprise sign-in: an email domain is routed to its own identity provider.
+    //
+    // OIDC only. samlConfig is never written, because SAML means samlify, and samlify has had
+    // three advisories, two of them authentication-bypass class, in one XML signature library.
+    // OIDC already covers Okta, Entra ID, Google Workspace, Auth0, Keycloak and JumpCloud. The
+    // dependency arrives either way (it is a hard dependency of the package), so this is about what
+    // is reachable, not what is installed.
+    ssoPlugin({
+      // No account is ever created by an identity provider. This is the tightest of the plugin's
+      // postures and it is chosen deliberately: an IdP asserts an email, and the plugin's own
+      // domain check (validateEmailDomain) only gates whether that assertion may LINK to an
+      // existing account, not whether the sign-in proceeds. Without this flag a provider
+      // registered for acme.example could mint an account for someone@gmail.com. With it, SSO can
+      // sign in people who already have accounts and can do nothing else.
+      // The cost is real: an organisation rolling out SSO finds its people must have signed in
+      // once another way first. Revisit when there is an invite flow to hang this on, which is
+      // what carbon has and this app does not.
+      disableImplicitSignUp: true,
+      // A provider routes nothing until its domain is proven by DNS, so a registered-but-unverified
+      // claim is inert. Also what makes domainVerified, and therefore the plugin's own linking
+      // check, mean anything.
+      domainVerification: { enabled: true },
+      // The organization plugin is registered but has almost no UI, so there is no organization for
+      // a provider to provision into. Turning this on before that exists would write memberships
+      // nothing can read.
+      organizationProvisioning: { disabled: true },
+      // Small on purpose. Registration is a console action, not self-serve, so this is a backstop
+      // against a loop rather than a product limit.
+      providersLimit: 10,
+    }),
     // The challenge the plugin above does not apply here, because its matcher never sees a social
     // callback or a passkey sign-in. Registered after it, though the two match disjoint paths by
     // construction. See @/two-factor-gate for what it costs.
@@ -243,6 +283,9 @@ export const passkeyEnabled = (auth.options.plugins ?? []).some(
 // means something entirely different: whether THIS person has enrolled. This one is about the
 // deployment, and reads true wherever the endpoints are mounted. Two names one letter apart, both
 // booleans, would be read wrong exactly once and that once would be a gate.
+// Whether enterprise sign-in is mounted at all, for the UI to ask before offering it.
+export const ssoAvailable = (auth.options.plugins ?? []).some((p) => (p.id as string) === "sso")
+
 export const twoFactorAvailable = (auth.options.plugins ?? []).some(
   (p) => (p.id as string) === "two-factor",
 )
