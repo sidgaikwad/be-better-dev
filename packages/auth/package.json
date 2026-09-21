@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@better-auth/passkey": "catalog:",
+    "@better-auth/sso": "catalog:",
     "@packages/db": "workspace:*",
     "@packages/env": "workspace:*",
     "@simplewebauthn/server": "catalog:",

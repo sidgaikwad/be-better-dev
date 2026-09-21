@@ -139,6 +139,45 @@ export const twoFactor = pgTable(
   (table) => [index("twoFactor_userId_idx").on(table.userId)],
 )
 
+// One registered identity provider. Better Auth keeps this as a single flat table where carbon uses
+// two (a connection plus its claimed domains), which is the one place their model is better: a row
+// here holds exactly one `domain`, so "three verified domains and one pending" cannot be expressed.
+// Live with it while registration is console-only and a handful of rows; revisit if this ever goes
+// self-serve.
+export const ssoProvider = pgTable(
+  "sso_provider",
+  {
+    id: text("id").primaryKey(),
+    // The IdP's own identifier, from its discovery document.
+    issuer: text("issuer").notNull(),
+    // Both are JSON serialised by the plugin, not columns we read. Exactly one is set per row, and
+    // samlConfig stays null here because only OIDC is enabled: see the sso() options.
+    oidcConfig: text("oidc_config"),
+    samlConfig: text("saml_config"),
+    // Who registered it, and nothing more. set null rather than cascade, deliberately: deleting the
+    // admin who set up SSO must not delete the connection and lock out everyone on that domain.
+    // The row outlives the reference, so the column is provenance, which is the same call
+    // console.ts makes for actor_id. No index: nothing queries by it and the table is tiny.
+    userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+    // Unique because the plugin resolves a provider by this at callback time, and a duplicate would
+    // make that lookup ambiguous. Same reasoning as passkey.credential_id.
+    providerId: text("provider_id").notNull(),
+    // The organization plugin is registered but has almost no UI, so organizationProvisioning stays
+    // disabled and this stays null. The column exists because the plugin declares it.
+    organizationId: text("organization_id"),
+    // The email domain this provider answers for. The sign-in lookup drives off it, hence the index.
+    domain: text("domain").notNull(),
+    // Present only because domainVerification is enabled. A provider routes nothing until this is
+    // true, so a registered-but-unproven domain is inert.
+    domainVerified: boolean("domain_verified").default(false),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("ssoProvider_providerId_uidx").on(table.providerId),
+    index("ssoProvider_domain_idx").on(table.domain),
+  ],
+)
+
 export const verification = pgTable(
   "verification",
   {
@@ -262,6 +301,13 @@ export const sessionRelations = relations(session, ({ one }) => ({
 export const passkeyRelations = relations(passkey, ({ one }) => ({
   user: one(user, {
     fields: [passkey.userId],
+    references: [user.id],
+  }),
+}))
+
+export const ssoProviderRelations = relations(ssoProvider, ({ one }) => ({
+  user: one(user, {
+    fields: [ssoProvider.userId],
     references: [user.id],
   }),
 }))
