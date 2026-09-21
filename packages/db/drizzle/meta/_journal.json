@@ -57,6 +57,13 @@
       "when": 1789845785462,
       "tag": "0007_passkey",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790007072337,
+      "tag": "0008_two_factor",
+      "breakpoints": true
     }
   ]
 }

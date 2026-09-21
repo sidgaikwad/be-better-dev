@@ -9,6 +9,12 @@ export const user = pgTable("user", {
   image: text("image"),
   role: text("role").default("user"),
   roleSetAt: timestamp("role_set_at"),
+  // Owned by the two-factor plugin, which declares it `input: false`: it flips only through
+  // /two-factor/enable and /two-factor/disable, never from a user-supplied field. Mirrors
+  // emailVerified's shape rather than the plugin's `required: false`, because a null here would
+  // read as "unknown" at exactly the moment the gate has to decide, and the default covers every
+  // insert the adapter makes.
+  twoFactorEnabled: boolean("two_factor_enabled").default(false).notNull(),
   banned: boolean("banned"),
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),
@@ -37,6 +43,13 @@ export const session = pgTable(
     activeOrganizationId: text("active_organization_id"),
     activeTeamId: text("active_team_id"),
     impersonatedBy: text("impersonated_by"),
+    // How this session authenticated: "github", "google", "passkey", later "sso". Better Auth has
+    // no equivalent of an OIDC `amr` claim, and the question a gate has to answer is about THIS
+    // session, not about which identities the account has linked: once an SSO account is linked
+    // its provider row is permanent, so asking the account would let a later magic-link login
+    // wear the SSO exemption. Nullable, and null means unknown, which every gate must read as the
+    // non-exempt path. Nothing writes it yet; the session hook lands with the plugin.
+    signInMethod: text("sign_in_method"),
   },
   (table) => [index("session_userId_idx").on(table.userId)],
 )
@@ -89,6 +102,34 @@ export const passkey = pgTable(
     index("passkey_userId_idx").on(table.userId),
     uniqueIndex("passkey_credentialId_uidx").on(table.credentialID),
   ],
+)
+
+// Credential material, exactly like passkey.public_key. Better Auth marks both columns
+// `returned: false` so its own endpoints never serialise them; nothing here may either. No console
+// read surface, no logging, and no inclusion in an admin user dump.
+export const twoFactor = pgTable(
+  "two_factor",
+  {
+    id: text("id").primaryKey(),
+    // The TOTP shared secret, base32. Stored in plaintext: 1.6.25 encrypts it only when
+    // totpOptions.storeSecret is configured with an encryptor, and it is not.
+    secret: text("secret").notNull(),
+    // The whole set, one encoded string, not a row per code. The plugin owns the encoding.
+    backupCodes: text("backup_codes").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    // False only while an enrolment is mid-ceremony. Defaults true because the plugin writes the
+    // row verified unless skipVerificationOnEnable put it there early.
+    verified: boolean("verified").default(true).notNull(),
+    // Ours, not the plugin's. The settings screen has to say when a factor was enrolled, and a
+    // reset in the console is worth dating. Defaulted, so the plugin's inserts stay valid.
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  // userId only. The plugin declares `index: true` on secret, but every lookup it makes is by id
+  // (5) or userId (4) and none by secret, so that index would buy nothing and copy the secret into
+  // a second place on disk.
+  (table) => [index("twoFactor_userId_idx").on(table.userId)],
 )
 
 export const verification = pgTable(
@@ -198,6 +239,7 @@ export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   passkeys: many(passkey),
+  twoFactors: many(twoFactor),
   teamMembers: many(teamMember),
   members: many(member),
   invitations: many(invitation),
@@ -213,6 +255,13 @@ export const sessionRelations = relations(session, ({ one }) => ({
 export const passkeyRelations = relations(passkey, ({ one }) => ({
   user: one(user, {
     fields: [passkey.userId],
+    references: [user.id],
+  }),
+}))
+
+export const twoFactorRelations = relations(twoFactor, ({ one }) => ({
+  user: one(user, {
+    fields: [twoFactor.userId],
     references: [user.id],
   }),
 }))
