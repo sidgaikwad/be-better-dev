@@ -272,11 +272,16 @@ UI is never offered a method it cannot complete. Leave `otpOptions` absent.
 
 ### Storage
 
-`secret` and `backupCodes` both have `returned: false`, so the plugin never serialises them. They
-are not stored alike, which is worth knowing before deciding either is safe: `backupCodeOptions`
-defaults to `storeBackupCodes: "encrypted"`, so the codes are encrypted at rest without any
-configuration, while the **TOTP secret is plaintext** unless `totpOptions.storeSecret` is configured
-with an encryptor, and it is not. Treat the `twoFactor` table as credential material: no console read surface, no logging,
+`secret` and `backupCodes` both have `returned: false`, so the plugin never serialises them, and
+both are encrypted at rest with no configuration: `backupCodeOptions` defaults to
+`storeBackupCodes: "encrypted"`, and the TOTP secret goes through `symmetricDecrypt` against
+`ctx.context.secretConfig` on every verify. An earlier draft of this spec called the secret
+plaintext, from reading the schema rather than the verify path. It is not.
+
+The schema has two more columns than the plugin's declared shape suggests at a glance, and they are
+the ones that make a challenge worth anything: `failedVerificationCount` and `lockedUntil` carry the
+account lockout. **Without them the 10-failure cap silently does not exist** and a six-digit code
+can be guessed without limit. They were missed in `#57` and added in `#61`. Treat the `twoFactor` table as credential material: no console read surface, no logging,
 no inclusion in any admin user dump.
 
 ### Recovery: backup codes, admin reset, or both
@@ -425,7 +430,7 @@ hostname change has to land.
 
 ### Chain A: 2FA (no dependency on chain B)
 
-1. ~~**Schema and migration**~~ (done, `#57`). `twoFactor` table plus `user.twoFactorEnabled` in
+1. ~~**Schema and migration**~~ (done, `#57`, completed by `#61`). `twoFactor` table plus `user.twoFactorEnabled` in
    `packages/db/src/schema/auth.ts`, exported from `schema/index.ts`, added to the
    `drizzleAdapter` schema map in `packages/auth/src/index.ts`. Generate `0008_two_factor.sql`.
    Follow `0007_passkey.sql` for shape: FK with `ON DELETE cascade`, `twoFactor_userId_idx`.
