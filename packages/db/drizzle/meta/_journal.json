@@ -57,6 +57,34 @@
       "when": 1789845785462,
       "tag": "0007_passkey",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790007072337,
+      "tag": "0008_two_factor",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790012261551,
+      "tag": "0009_two_factor_lockout",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790017686378,
+      "tag": "0010_sso_provider",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790018358321,
+      "tag": "0011_org_1_7_columns",
+      "breakpoints": true
     }
   ]
 }

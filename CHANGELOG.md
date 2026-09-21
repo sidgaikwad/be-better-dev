@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.0.12
+
+[compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.11...v0.0.12)
+
+### 🩹 Fixes
+
+- **api:** Refuse dev-only disclosure on any deployment, not just by NODE_ENV ([#54](https://github.com/sidgaikwad/be-better-dev/pull/54))
+- **web:** Keep the navbar off app-shell routes and give the sidebar a theme control ([#56](https://github.com/sidgaikwad/be-better-dev/pull/56))
+
+### ❤️ Contributors
+
+- Siddharth Gaikwad @sidgaikwad
+
 ## v0.0.11
 
 [compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.10...v0.0.11)

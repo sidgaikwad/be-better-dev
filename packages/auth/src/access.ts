@@ -55,6 +55,17 @@ export function refuseBan(input: ActorTarget): BanRefusal | null {
 }
 
 // The rungs this actor could grant this target, from the same guard the API asks, so a menu cannot offer what the server would refuse. targetIsLastOwner is unknowable without the database, so a demotion it refuses can still be offered.
+// Why a reset asks the ban question and not a softer one: taking someone's second factor off their
+// account leaves the account reachable by whatever their sign-in method alone proves, which is the
+// same kind of decision a ban is, and it must not be an admin's route around an owner. Self is
+// refused because the settings page is where you do that, with your own code in hand: an admin who
+// could reset themselves from here would have a way to shed the factor without ever holding it.
+export type TwoFactorResetRefusal = BanRefusal
+
+export function refuseTwoFactorReset(input: ActorTarget): TwoFactorResetRefusal | null {
+  return refuseBan(input)
+}
+
 export function grantableRoles(input: ActorTarget): ConsoleRole[] {
   return CONSOLE_ROLES.filter(
     (nextRole) =>

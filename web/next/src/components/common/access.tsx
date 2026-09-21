@@ -23,12 +23,29 @@ import { toast } from "@/components/ui/toast"
 import { apiClient, unwrap } from "@/lib/api/client"
 import { authClient } from "@/lib/auth/client"
 import { config } from "@/lib/config"
+import { cn } from "@/lib/utils"
 
 const formSchema = z.object({
   email: z.email({ error: "Please enter a valid email address." }),
 })
 
-export function Access({ labelClassName }: { labelClassName?: string }) {
+// The one sign-in dialog the whole app uses. The trigger is parameterised rather
+// than duplicated: the navbar wants a 24-unit outline button reading Login, the
+// landing hero wants a wide primary call to action, and both must open exactly
+// this dialog.
+export function Access({
+  className,
+  label = "Login",
+  labelClassName,
+  size,
+  variant = "outline",
+}: {
+  className?: string
+  label?: string
+  labelClassName?: string
+  size?: React.ComponentProps<typeof Button>["size"]
+  variant?: React.ComponentProps<typeof Button>["variant"]
+}) {
   const pathname = usePathname()
   const [loader, setLoader] = useState<"email" | "github" | "google" | "passkey" | null>(null)
   const [open, setOpen] = useState(false)
@@ -97,8 +114,10 @@ export function Access({ labelClassName }: { labelClassName?: string }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button className="w-24" variant="outline" />}>
-        <span className={labelClassName}>Login</span>
+      <DialogTrigger
+        render={<Button className={cn("w-24", className)} size={size} variant={variant} />}
+      >
+        <span className={labelClassName}>{label}</span>
       </DialogTrigger>
       <DialogContent className="max-w-md" initialFocus={false}>
         <DialogHeader className="sr-only">

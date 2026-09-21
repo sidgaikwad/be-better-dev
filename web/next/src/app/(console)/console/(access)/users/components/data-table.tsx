@@ -92,9 +92,15 @@ export function UsersDataTable() {
     fromSelection: boolean
     users: ConsoleUser[]
   } | null>(null)
+  // Confirmed like a ban, and for the same reason: it takes a security control off someone's
+  // account, and the person it happens to finds out at their next sign-in.
+  const [pendingReset, setPendingReset] = React.useState<ConsoleUser[] | null>(null)
   const columns = React.useMemo(
     () =>
-      usersColumns((users, banned) => setPendingStatus({ banned, fromSelection: false, users })),
+      usersColumns(
+        (users, banned) => setPendingStatus({ banned, fromSelection: false, users }),
+        (users) => setPendingReset(users),
+      ),
     [],
   )
   const { selected, table, tableProps } = useDataTable({
@@ -182,6 +188,25 @@ export function UsersDataTable() {
         banned ? "banned" : "unbanned",
         users[0] ? `${banned ? "Banned" : "Unbanned"} ${users[0].email}` : undefined,
       )
+      queryClient.invalidateQueries({ queryKey: ["console-users"] })
+    },
+  })
+
+  // Held past the close, like shownStatus above, so the email in the dialog does not blank for a
+  // frame while it animates out.
+  const lastReset = React.useRef(pendingReset)
+  if (pendingReset) lastReset.current = pendingReset
+  const shownReset = pendingReset ?? lastReset.current
+
+  const resetTwoFactor = useMutation({
+    mutationFn: async (users: ConsoleUser[]) =>
+      runBatched(
+        users.map((row) => row.id),
+        (ids) => unwrap(apiClient.v1.admin.users["two-factor"].reset.$post({ json: { ids } })),
+      ),
+    onSuccess: (outcome, users) => {
+      setPendingReset(null)
+      toastBulk(outcome, "reset", users[0] ? `Reset two-factor for ${users[0].email}` : undefined)
       queryClient.invalidateQueries({ queryKey: ["console-users"] })
     },
   })
@@ -291,6 +316,16 @@ export function UsersDataTable() {
           </>
         }
         description="Anyone the console refuses to change, such as you or an account you do not outrank, keeps their current role."
+      />
+      <ConfirmDialog
+        action="Reset two-factor"
+        variant="destructive"
+        open={pendingReset !== null}
+        pending={resetTwoFactor.isPending}
+        onOpenChange={(open) => !open && setPendingReset(null)}
+        onConfirm={() => pendingReset && resetTwoFactor.mutate(pendingReset)}
+        title={<>Reset two-factor for {shownReset?.[0]?.email ?? "this account"}?</>}
+        description="Their authenticator and backup codes are removed, so their next sign-in asks for no code and they set it up again from settings. Do this when someone has lost their phone, and check who is asking first."
       />
     </div>
   )

@@ -19,7 +19,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Spinner } from "@/components/ui/spinner"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { authClient } from "@/lib/auth/client"
-import { isAppShellPath } from "@/lib/shell"
+import { hidesNavbar } from "@/lib/shell"
 import { cn, isActive } from "@/lib/utils"
 
 const socialLinks = [
@@ -79,8 +79,8 @@ export function Navbar() {
     setToDashboard(false)
   }, [pathname])
 
-  // Every (protected)/(console) route renders SidebarShell, which already carries the brand, nav, and user menu; this fixed navbar would sit on top of that sidebar and the page heading.
-  if (isAppShellPath(pathname)) return null
+  // Every (protected)/(console) route renders SidebarShell, which already carries the brand, nav, and user menu; this fixed navbar would sit on top of that sidebar and the page heading. A chromeless route (the two-factor challenge) hides it for its own reason: see lib/shell.
+  if (hidesNavbar(pathname)) return null
 
   // A link with a `feature` is shown only when that feature is enabled; /hire has none, so it always shows (and is stripped from forks by the CLI).
   const allNavLinks: { href: string; label: string; external?: boolean; feature?: Feature }[] = [
@@ -91,7 +91,9 @@ export function Navbar() {
   const navLinks = allNavLinks.filter((link) => !link.feature || features[link.feature])
 
   return (
-    <header className="bg-background fixed top-0 left-0 z-50 w-full border-b">
+    // Translucent rather than solid: the landing hero runs its aurora up behind the
+    // bar, and a solid strip would cut a flat band across the top of it.
+    <header className="bg-background/70 fixed top-0 left-0 z-50 w-full border-b backdrop-blur-xl">
       <div className="flex min-h-14 items-center justify-between pr-5 pl-3.5">
         <Link href="/" className="flex items-center gap-2 font-bold">
           {site.name}

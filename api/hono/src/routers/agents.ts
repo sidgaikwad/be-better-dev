@@ -38,11 +38,17 @@ export const agentsRouter = new Hono()
       if (!user) return fail("user update failed")
     } else {
       try {
-        user = await ctx.internalAdapter.createUser({
-          email: AGENT_EMAIL,
-          name: AGENT_NAME,
-          emailVerified: true,
-        })
+        user = await ctx.internalAdapter.createUser(
+          {
+            email: AGENT_EMAIL,
+            name: AGENT_NAME,
+            emailVerified: true,
+          },
+          // Required since better-auth 1.7: every user creation names how it happened, so a
+          // user.validateUserInfo gate can refuse one. Nothing configures that gate here, but the
+          // argument is not optional, and "agent" is the honest answer.
+          { method: "agent" },
+        )
         created = true
       } catch (err) {
         console.error("POST /api/agents/sign-in-as createUser failed:", err)
@@ -67,7 +73,12 @@ export const agentsRouter = new Hono()
       })
     }
 
-    const session = await ctx.internalAdapter.createSession(user.id)
+    // Named explicitly because this session is minted outside any auth endpoint, so the create
+    // hook sees no path and would otherwise leave sign_in_method null. Third argument is the
+    // adapter's data override.
+    const session = await ctx.internalAdapter.createSession(user.id, undefined, {
+      signInMethod: "agent",
+    })
     const signed = `${session.token}.${await makeSignature(session.token, ctx.secret)}`
     const { name, attributes } = ctx.authCookies.sessionToken
     setCookie(c, name, signed, {

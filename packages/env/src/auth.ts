@@ -20,6 +20,17 @@ export const env = createEnv({
       .transform((s) => s.split(",").map((v) => v.trim().replace(/\/$/, "")))
       .pipe(z.array(z.url())),
     HONO_WEB_URL: z.url().optional(),
+    // Origins of the identity providers SSO may fetch an OIDC discovery document from, comma
+    // separated. Kept apart from HONO_TRUSTED_ORIGINS because the two mean different things: that
+    // one is "browsers we serve", this one is "servers we will call". They are merged into Better
+    // Auth's single trustedOrigins option because the SSO plugin has no list of its own, but the
+    // passkey plugin keeps pinning its expected origins to HONO_TRUSTED_ORIGINS alone, so adding
+    // an IdP here can never widen what a passkey ceremony will accept.
+    BETTER_AUTH_SSO_ORIGINS: z
+      .string()
+      .transform((value) => value.split(",").map((v) => v.trim().replace(/\/$/, "")))
+      .pipe(z.array(z.url()))
+      .optional(),
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
@@ -32,6 +43,7 @@ export const env = createEnv({
     HONO_APP_URL: polyfillServer(process.env.HONO_APP_URL, "https://polyfill.url"),
     HONO_TRUSTED_ORIGINS: polyfillServer(process.env.HONO_TRUSTED_ORIGINS, "https://polyfill.url"),
     HONO_WEB_URL: process.env.HONO_WEB_URL,
+    BETTER_AUTH_SSO_ORIGINS: process.env.BETTER_AUTH_SSO_ORIGINS,
   },
   emptyStringAsUndefined: true,
 })

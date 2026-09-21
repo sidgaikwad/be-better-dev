@@ -1,4 +1,5 @@
 import { passkey as passkeyPlugin } from "@better-auth/passkey"
+import { sso as ssoPlugin } from "@better-auth/sso"
 import { site } from "@packages/config/site"
 import {
   account,
@@ -9,7 +10,9 @@ import {
   passkey,
   session,
   team,
+  ssoProvider,
   teamMember,
+  twoFactor,
   user,
   verification,
 } from "@packages/db"
@@ -28,12 +31,15 @@ import {
   admin as adminPlugin,
   openAPI as openAPIPlugin,
   organization as organizationPlugin,
+  twoFactor as twoFactorPlugin,
 } from "better-auth/plugins"
 import { userAc } from "better-auth/plugins/admin/access"
 
 import { ACCESS_ROLE, CONSOLE_ROLES, roleAtLeast } from "@/access"
 import { grantConsoleAccessOnSignIn } from "@/allowlist"
 import { cookieConfig, localhostHost, type ParsedHost } from "@/lib/utils"
+import { resolveSignInMethod } from "@/sign-in-method"
+import { twoFactorGate } from "@/two-factor-gate"
 
 // The app host's tldts breakdown, inlined at build by @packages/scripts/src/generate-env.ts (see tsdown.config.ts define), so no Public Suffix List ships at runtime. A runtime .localhost host (portless dev, injected after the build) overrides it so web and api share the cookie.
 declare const __DERIVED_TLDTS__: ParsedHost
@@ -87,9 +93,16 @@ export const enabledSocialProviders: SocialProvider[] = [
   ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET ? (["google"] as const) : []),
 ]
 
+// Better Auth has one trustedOrigins and the SSO plugin has no list of its own, so an identity
+// provider's discovery document can only be fetched if its origin is in that one list. Merged here
+// rather than by widening HONO_TRUSTED_ORIGINS, because that variable is still handed to the
+// passkey plugin as its expected origins, and a passkey ceremony must not start accepting an
+// origin just because someone registered an IdP there.
+const ssoOrigins = env.BETTER_AUTH_SSO_ORIGINS ?? []
+
 export const auth = betterAuth({
   baseURL: webOrigin ?? env.HONO_APP_URL,
-  trustedOrigins: env.HONO_TRUSTED_ORIGINS,
+  trustedOrigins: [...new Set([...env.HONO_TRUSTED_ORIGINS, ...ssoOrigins])],
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: {
@@ -99,8 +112,10 @@ export const auth = betterAuth({
       organization,
       passkey,
       session,
+      ssoProvider,
       team,
       teamMember,
+      twoFactor,
       user,
       verification,
     },
@@ -109,13 +124,34 @@ export const auth = betterAuth({
     throw: true,
   },
   session: {
+    additionalFields: {
+      // Written by the create hook below and by nothing else. `input: false` is what makes that
+      // true rather than merely intended: without it a request body could name its own sign-in
+      // method, and the column exists precisely to be trusted by a gate.
+      signInMethod: {
+        type: "string",
+        required: false,
+        input: false,
+      },
+    },
     cookieCache: {
       enabled: true,
       maxAge: 300,
     },
   },
   databaseHooks: {
-    session: { create: { before: grantConsoleAccessOnSignIn } },
+    session: {
+      create: {
+        before: async (session, ctx) => {
+          await grantConsoleAccessOnSignIn(session)
+          const signInMethod = resolveSignInMethod(ctx)
+          // undefined rather than an empty merge, so an unclassifiable session leaves the column
+          // null. Null is the non-exempt answer and the one a gate has to fail towards; see
+          // @/sign-in-method.
+          return signInMethod ? { data: { signInMethod } } : undefined
+        },
+      },
+    },
   },
   plugins: [
     openAPIPlugin(),
@@ -144,6 +180,71 @@ export const auth = betterAuth({
         userVerification: "preferred",
       },
     }),
+    // READ THIS BEFORE BELIEVING 2FA IS ON: registering this plugin does not gate any sign-in
+    // here. Its own sign-in hook matches exactly three paths, `/sign-in/email`,
+    // `/sign-in/username` and `/sign-in/phone-number`, and this app serves none of them: there is
+    // no emailAndPassword config, no username plugin, no phone-number plugin. Everyone arrives
+    // through a social callback or a passkey. So what lands here is the enrolment half, the
+    // endpoints and the storage; the challenge is a hook we write ourselves, and until it exists
+    // a user can enrol an authenticator and never once be asked for a code. See
+    // .github/notes/sso-and-2fa.md, "The gap that decides everything".
+    twoFactorPlugin({
+      // What the authenticator app shows above the account, so it has to be the product name
+      // rather than a hostname: someone with three TOTP entries reads this to tell them apart.
+      issuer: site.name,
+      // Load-bearing, not a convenience. Enable and disable demand the user's password by
+      // default, and nobody in this database has one: sign-in is GitHub, Google or a passkey, and
+      // there is no credential account to check against. Without this every call to
+      // /two-factor/enable returns INVALID_PASSWORD, for every user, forever. The plugin still
+      // asks for a password when a credential account does exist, so a fork that turns on
+      // emailAndPassword keeps that check.
+      allowPasswordless: true,
+      // otpOptions is deliberately absent. It needs a `sendOTP` and this repo has no mailer, so
+      // there is nothing to send with. The plugin handles the absence properly rather than
+      // half-working: /two-factor/send-otp refuses with OTP_NOT_CONFIGURED, and the
+      // twoFactorMethods list a challenge returns only names "otp" when sendOTP is configured, so
+      // the UI is never offered a method it cannot complete. TOTP and backup codes are the two
+      // factors here. Backup codes are stored encrypted by the plugin's own default; the TOTP
+      // secret is not, because 1.6.25 encrypts it only under totpOptions.storeSecret.
+      //
+      // accountLockout is left at its default of on, 10 consecutive failures, 900s. It is
+      // account-scoped where the Redis rate limiter is request-scoped, so the two answer
+      // different questions and both are wanted.
+    }),
+    // Enterprise sign-in: an email domain is routed to its own identity provider.
+    //
+    // OIDC only. samlConfig is never written, because SAML means samlify, and samlify has had
+    // three advisories, two of them authentication-bypass class, in one XML signature library.
+    // OIDC already covers Okta, Entra ID, Google Workspace, Auth0, Keycloak and JumpCloud. The
+    // dependency arrives either way (it is a hard dependency of the package), so this is about what
+    // is reachable, not what is installed.
+    ssoPlugin({
+      // No account is ever created by an identity provider. This is the tightest of the plugin's
+      // postures and it is chosen deliberately: an IdP asserts an email, and the plugin's own
+      // domain check (validateEmailDomain) only gates whether that assertion may LINK to an
+      // existing account, not whether the sign-in proceeds. Without this flag a provider
+      // registered for acme.example could mint an account for someone@gmail.com. With it, SSO can
+      // sign in people who already have accounts and can do nothing else.
+      // The cost is real: an organisation rolling out SSO finds its people must have signed in
+      // once another way first. Revisit when there is an invite flow to hang this on, which is
+      // what carbon has and this app does not.
+      disableImplicitSignUp: true,
+      // A provider routes nothing until its domain is proven by DNS, so a registered-but-unverified
+      // claim is inert. Also what makes domainVerified, and therefore the plugin's own linking
+      // check, mean anything.
+      domainVerification: { enabled: true },
+      // The organization plugin is registered but has almost no UI, so there is no organization for
+      // a provider to provision into. Turning this on before that exists would write memberships
+      // nothing can read.
+      organizationProvisioning: { disabled: true },
+      // Small on purpose. Registration is a console action, not self-serve, so this is a backstop
+      // against a loop rather than a product limit.
+      providersLimit: 10,
+    }),
+    // The challenge the plugin above does not apply here, because its matcher never sees a social
+    // callback or a passkey sign-in. Registered after it, though the two match disjoint paths by
+    // construction. See @/two-factor-gate for what it costs.
+    twoFactorGate(`${resolvedWebOrigin ?? env.HONO_APP_URL}/two-factor`),
   ],
   socialProviders: {
     ...(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
@@ -178,11 +279,25 @@ export const passkeyEnabled = (auth.options.plugins ?? []).some(
   (p) => (p.id as string) === "passkey",
 )
 
+// Deliberately not `twoFactorEnabled`, which is the per-user column the plugin owns on `user` and
+// means something entirely different: whether THIS person has enrolled. This one is about the
+// deployment, and reads true wherever the endpoints are mounted. Two names one letter apart, both
+// booleans, would be read wrong exactly once and that once would be a gate.
+// Whether enterprise sign-in is mounted at all, for the UI to ask before offering it.
+export const ssoAvailable = (auth.options.plugins ?? []).some((p) => (p.id as string) === "sso")
+
+export const twoFactorAvailable = (auth.options.plugins ?? []).some(
+  (p) => (p.id as string) === "two-factor",
+)
+
 export const enabledProviders: AuthProvider[] = [
   ...enabledSocialProviders,
   ...(magicLinkEnabled ? (["magic-link"] as const) : []),
   ...(passkeyEnabled ? (["passkey"] as const) : []),
 ]
+
+export { resolveSignInMethod, type SignInContext } from "@/sign-in-method"
+export { TWO_FACTOR_GATED_PATHS } from "@/two-factor-gate"
 
 export type Session = typeof auth.$Infer.Session
 
