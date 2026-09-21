@@ -19,9 +19,13 @@ delete it when the override goes. See the `audit` skill for the procedure.
   one copy exists, not that it is recent.
 - **Risk**: moderate, and the widest blast radius of any override here, because zod is in the type
   signature of the API validators, the env schemas, the fumadocs frontmatter, and better-auth's
-  whole plugin surface. It also forces the one zod 3 consumer (`shadcn`, a dev-only CLI behind
-  `bun run shadcn:update`) onto zod 4. That path is exercised by the `shadcn-sync` skill rather
-  than by CI, so it is the thing most likely to be found late.
+  whole plugin surface. All of that is covered by `check-types`.
+  The one consumer CI cannot speak for is `shadcn`, which declares `zod ^3.24.1` and which no
+  released version has moved off. It is fine, and the reason is worth writing down so nobody
+  re-derives the scare: `shadcn-update.sh` invokes it as `bunx shadcn@latest`, an explicit package
+  spec that resolves outside this workspace, so the override never reaches it. Verified by running
+  `bunx shadcn@latest --version` under the override. The vestigial `shadcn` devDependency is what
+  the override actually hits, and nothing executes that copy.
 - **Exit criteria**: remove once every consumer's zod range overlaps unaided, most likely when
   `fumadocs-*` and `better-auth` have converged on the same zod 4 minor. Check by deleting the
   entry, running `bun i`, and confirming `bun.lock` still lists a single `zod@4`.
