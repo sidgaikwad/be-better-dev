@@ -7,8 +7,15 @@ import { resolveSignInMethod } from "../packages/auth/src/sign-in-method"
 // breaks the fumadocs types and the auth dts build. The package that does depend on it is one
 // directory away, so its copy is used directly.
 const { betterAuth } = await import("../packages/auth/node_modules/better-auth/dist/index.mjs")
+type AuthOptions = Parameters<typeof betterAuth>[0]
+
+// That second path's .d.mts is a bare `export * from "@better-auth/memory-adapter"`, and the
+// package it names lives only inside bun's store: bun resolves the runtime module, tsgo resolves
+// the re-export to nothing. Typed here rather than losing the test over it.
 const { memoryAdapter } =
-  await import("../packages/auth/node_modules/better-auth/dist/adapters/memory-adapter/index.mjs")
+  (await import("../packages/auth/node_modules/better-auth/dist/adapters/memory-adapter/index.mjs")) as unknown as {
+    memoryAdapter: (db: Record<string, unknown[]>) => AuthOptions["database"]
+  }
 
 // What this file is for: resolveSignInMethod is a pure function and tested as one next door, but it
 // only does anything if Better Auth hands a session create hook an endpoint context carrying the
