@@ -37,11 +37,17 @@ const METHOD_BY_PATH: Record<string, string> = {
   // Not served here, since there is no emailAndPassword config. Mapped so a fork that turns it on
   // is covered without having to find this file first.
   "/sign-in/email": "email",
+  // The OIDC callback, which is where an SSO session is actually minted. This is the entry the
+  // whole column exists for: a gate asks whether THIS session came from an identity provider, and
+  // an SSO session is the one carbon exempts from a two-factor challenge on the grounds that the
+  // IdP already applied its own. Both shapes are mapped because the plugin registers both.
+  "/sso/callback": "sso",
+  "/sso/callback/:providerId": "sso",
 }
 
-// When SSO lands, its session-minting paths join the map above as "sso", and that string is what
-// the challenge gate reads to skip a session the identity provider already applied MFA to. It is
-// left out until the plugin exists rather than shipped as an untested branch.
+// SAML's session-minting path (/sso/saml2/sp/acs/:providerId) is deliberately absent: SAML is not
+// enabled, so mapping it would be an untested branch. Add it in the same change that enables SAML,
+// or a SAML session records as null and is challenged, which is the safe direction to be wrong in.
 
 // The provider id lives in the route parameter, so github and google land as themselves and a fork
 // adding a third provider is recorded correctly without touching this file.
