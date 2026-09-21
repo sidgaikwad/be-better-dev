@@ -71,6 +71,13 @@
       "when": 1790012261551,
       "tag": "0009_two_factor_lockout",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790017686378,
+      "tag": "0010_sso_provider",
+      "breakpoints": true
     }
   ]
 }
