@@ -36,6 +36,7 @@ import { userAc } from "better-auth/plugins/admin/access"
 import { ACCESS_ROLE, CONSOLE_ROLES, roleAtLeast } from "@/access"
 import { grantConsoleAccessOnSignIn } from "@/allowlist"
 import { cookieConfig, localhostHost, type ParsedHost } from "@/lib/utils"
+import { resolveSignInMethod } from "@/sign-in-method"
 
 // The app host's tldts breakdown, inlined at build by @packages/scripts/src/generate-env.ts (see tsdown.config.ts define), so no Public Suffix List ships at runtime. A runtime .localhost host (portless dev, injected after the build) overrides it so web and api share the cookie.
 declare const __DERIVED_TLDTS__: ParsedHost
@@ -112,13 +113,34 @@ export const auth = betterAuth({
     throw: true,
   },
   session: {
+    additionalFields: {
+      // Written by the create hook below and by nothing else. `input: false` is what makes that
+      // true rather than merely intended: without it a request body could name its own sign-in
+      // method, and the column exists precisely to be trusted by a gate.
+      signInMethod: {
+        type: "string",
+        required: false,
+        input: false,
+      },
+    },
     cookieCache: {
       enabled: true,
       maxAge: 300,
     },
   },
   databaseHooks: {
-    session: { create: { before: grantConsoleAccessOnSignIn } },
+    session: {
+      create: {
+        before: async (session, ctx) => {
+          await grantConsoleAccessOnSignIn(session)
+          const signInMethod = resolveSignInMethod(ctx)
+          // undefined rather than an empty merge, so an unclassifiable session leaves the column
+          // null. Null is the non-exempt answer and the one a gate has to fail towards; see
+          // @/sign-in-method.
+          return signInMethod ? { data: { signInMethod } } : undefined
+        },
+      },
+    },
   },
   plugins: [
     openAPIPlugin(),
@@ -225,6 +247,8 @@ export const enabledProviders: AuthProvider[] = [
   ...(magicLinkEnabled ? (["magic-link"] as const) : []),
   ...(passkeyEnabled ? (["passkey"] as const) : []),
 ]
+
+export { resolveSignInMethod, type SignInContext } from "@/sign-in-method"
 
 export type Session = typeof auth.$Infer.Session
 

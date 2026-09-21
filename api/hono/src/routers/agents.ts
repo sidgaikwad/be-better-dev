@@ -67,7 +67,12 @@ export const agentsRouter = new Hono()
       })
     }
 
-    const session = await ctx.internalAdapter.createSession(user.id)
+    // Named explicitly because this session is minted outside any auth endpoint, so the create
+    // hook sees no path and would otherwise leave sign_in_method null. Third argument is the
+    // adapter's data override.
+    const session = await ctx.internalAdapter.createSession(user.id, undefined, {
+      signInMethod: "agent",
+    })
     const signed = `${session.token}.${await makeSignature(session.token, ctx.secret)}`
     const { name, attributes } = ctx.authCookies.sessionToken
     setCookie(c, name, signed, {
