@@ -287,3 +287,92 @@
 [data-motion="paused"] .ring-animate {
   animation-play-state: paused;
 }
+
+/* ------------------------------------------------------------------ figures */
+
+/* The step figures are small 3D scenes in their own right: a stack of lesson
+   cards seen at an angle, a shelf of lessons, a waveform. Same perspective
+   discipline as the book, at a tenth of the size. */
+.figure-scene {
+  perspective: 900px;
+  perspective-origin: 50% 50%;
+}
+
+.figure-stack {
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(48deg) rotateZ(-28deg);
+}
+
+.figure-card {
+  position: absolute;
+  inset: 0;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: color-mix(in oklch, var(--card), var(--brand) 6%);
+  box-shadow: 0 10px 20px -12px color-mix(in oklch, black, transparent 50%);
+}
+
+/* The card the reader is on: lifted off the stack and tinted, so "one at a
+   time" is the thing the figure says before any caption does. */
+.figure-card-active {
+  background: linear-gradient(140deg, var(--brand-glow), var(--brand));
+  border-color: transparent;
+}
+
+/* Bars of a page of text, standing in for prose without pretending to be it. */
+.figure-line {
+  height: 0.3rem;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.35;
+}
+
+/* The audiobook's meter. Each bar is sized by its own custom property so the
+   shape is authored, not random, and it holds that shape when motion is off. */
+.figure-bar {
+  width: 0.25rem;
+  border-radius: 9999px;
+  background: var(--audio);
+  height: calc(var(--bar) * 1rem);
+  transform-origin: center;
+}
+
+@keyframes bar-pulse {
+  0%,
+  100% {
+    transform: scaleY(0.55);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bar-animate {
+    animation: bar-pulse 1.4s ease-in-out infinite;
+    animation-delay: calc(var(--bar) * -0.22s);
+  }
+}
+
+[data-motion="paused"] .bar-animate {
+  animation-play-state: paused;
+}
+
+/* Four boards of a lesson stack. Written out rather than computed inline so the
+   figure's geometry sits with the rest of the geometry. */
+.figure-card-1 {
+  transform: translateZ(0);
+}
+
+.figure-card-2 {
+  transform: translateZ(0.35rem);
+}
+
+.figure-card-3 {
+  transform: translateZ(0.7rem);
+}
+
+.figure-card-4 {
+  transform: translateZ(1.6rem);
+}
