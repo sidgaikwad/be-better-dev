@@ -38,11 +38,17 @@ export const agentsRouter = new Hono()
       if (!user) return fail("user update failed")
     } else {
       try {
-        user = await ctx.internalAdapter.createUser({
-          email: AGENT_EMAIL,
-          name: AGENT_NAME,
-          emailVerified: true,
-        })
+        user = await ctx.internalAdapter.createUser(
+          {
+            email: AGENT_EMAIL,
+            name: AGENT_NAME,
+            emailVerified: true,
+          },
+          // Required since better-auth 1.7: every user creation names how it happened, so a
+          // user.validateUserInfo gate can refuse one. Nothing configures that gate here, but the
+          // argument is not optional, and "agent" is the honest answer.
+          { method: "agent" },
+        )
         created = true
       } catch (err) {
         console.error("POST /api/agents/sign-in-as createUser failed:", err)

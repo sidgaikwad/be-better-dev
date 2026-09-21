@@ -5,6 +5,31 @@ delete it when the override goes. See the `audit` skill for the procedure.
 
 ## Active overrides
 
+### zod → 4.6.5
+
+- **Advisory**: none. This is the one override here that is not about a vulnerability, and it is
+  pinned exact rather than ranged, which is also unlike the others. Both are deliberate.
+- **Why an override**: `better-auth@1.7.5` requires `zod ^4.5.4`, so the upgrade off `1.6.25` (the
+  prerequisite for `@better-auth/sso`) drags a second zod 4 into the tree. A split zod 4 does not
+  merely duplicate bytes, it breaks types in two places at once. `@packages/auth` emits a bundled
+  dts, and tsgo refuses it with TS2883 when the inferred type of `auth` names a zod that workspace
+  cannot reach. And `fumadocs-core`'s `pageSchema.extend()` silently loses the added fields when
+  its zod differs from the one `web/next` imports, so `PageData` drops `author` and `tags` and
+  `lib/fumadocs.tsx` stops compiling. Ranged (`^4.6.5`) does not help: the point is that exactly
+  one copy exists, not that it is recent.
+- **Risk**: moderate, and the widest blast radius of any override here, because zod is in the type
+  signature of the API validators, the env schemas, the fumadocs frontmatter, and better-auth's
+  whole plugin surface. All of that is covered by `check-types`.
+  The one consumer CI cannot speak for is `shadcn`, which declares `zod ^3.24.1` and which no
+  released version has moved off. It is fine, and the reason is worth writing down so nobody
+  re-derives the scare: `shadcn-update.sh` invokes it as `bunx shadcn@latest`, an explicit package
+  spec that resolves outside this workspace, so the override never reaches it. Verified by running
+  `bunx shadcn@latest --version` under the override. The vestigial `shadcn` devDependency is what
+  the override actually hits, and nothing executes that copy.
+- **Exit criteria**: remove once every consumer's zod range overlaps unaided, most likely when
+  `fumadocs-*` and `better-auth` have converged on the same zod 4 minor. Check by deleting the
+  entry, running `bun i`, and confirming `bun.lock` still lists a single `zod@4`.
+
 ### postcss → ^8.5.26
 
 - **Advisory**: [GHSA-2v37-7h3g-55p8](https://github.com/advisories/GHSA-2v37-7h3g-55p8), high,
