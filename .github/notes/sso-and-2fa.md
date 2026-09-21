@@ -22,9 +22,10 @@ prerequisite (the better-auth upgrade) is still being argued about.
 
 ## Next action
 
-Chain A step 3: record the sign-in method on the session. `session.sign_in_method` exists and is
-still null for every row; it needs `session: { additionalFields: { signInMethod: ... } }` plus a
-`databaseHooks.session.create.before` that reads the path. ~1 h. Step 4, the gate, depends on it.
+Chain A step 4: the gate. Our own `after` hook matching `/callback/:id` and
+`/passkey/verify-authentication`, replicating what the plugin's own handler does on the three paths
+it knows. `session.sign_in_method` is now populated, so the SSO exemption has something to read
+when it exists. ~4 h.
 
 Chain B's prerequisite, bumping `better-auth` off 1.6.25, is independent and can start in parallel.
 
@@ -432,9 +433,12 @@ hostname change has to land.
 2. ~~**Server plugin**~~ (done). Registered with `issuer: site.name` and `allowPasswordless: true`,
    the table wired into the `drizzleAdapter` map, and a `twoFactorAvailable` export. Named that way
    and not `twoFactorEnabled`, which is the per-user column and means something else entirely.
-3. **Record the sign-in method on the session** (~1 h). Better Auth has no `amr` claim. Without
-   this we cannot build carbon's SSO exemption later and cannot tell a linked account's magic-link
-   login from a real SSO login. Cheaper now than retrofitted.
+3. ~~**Record the sign-in method on the session**~~ (done). `@/sign-in-method` resolves it from the
+   endpoint that mints the session, and the create hook merges it in. The social callback names its
+   provider from the route parameter, so a fork adding a provider is covered without an edit;
+   impersonation is named as itself so no exemption can match it; the agent route passes it
+   explicitly, having no endpoint context at all. SSO's paths are deliberately absent until the
+   plugin exists.
 4. **The gate** (~4 h). Our own `after` hook matching `/callback/:id` and `/sign-in/passkey`,
    replicating the upstream handler: delete the session the sign-in just created, null
    `newSession`, write the `2fa-<random>` verification row and the `2fa-attempts-*` counter, set
@@ -498,6 +502,11 @@ Total: roughly 2-3 days for OIDC. SAML adds 1-2 days and the samlify maintenance
    here, but every path above gets easier with one.
 
 ## Part 6: how to test
+
+The repo's `test` script (`bun test tests`) was wired but inert, because `tests/` did not exist. It
+does now, so **CI runs it**: `bun run test` in `auto-check-build.yml` is no longer a no-op. Root has
+no better-auth dependency and adding one would be a manifest edit, which splits zod here, so the
+integration test imports better-auth by path from `packages/auth/node_modules`.
 
 - **TOTP** is fully testable headlessly, unlike passkeys. Generate the secret, compute the code
   with any TOTP implementation, post it to `/two-factor/verify-totp`. There is no biometric
