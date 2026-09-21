@@ -212,6 +212,10 @@ export const team = pgTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
+    // Denormalised, and the plugin owns it: it increments and re-syncs this rather than counting
+    // team_member on read. `input: false` upstream, so nothing but the plugin writes it. Added in
+    // better-auth 1.7; without it the adapter logs a Drizzle schema mismatch at startup.
+    memberCount: integer("member_count").default(0).notNull(),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
@@ -231,11 +235,17 @@ export const teamMember = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+    // The plugin's idempotency key for adding someone to a team: it looks a membership up by this
+    // first and falls back to the (teamId, userId) pair, so a retried add finds the existing row
+    // instead of inserting a second. Unique for that to mean anything, and nullable because every
+    // row written before 1.7 has none.
+    membershipKey: text("membership_key"),
     createdAt: timestamp("created_at"),
   },
   (table) => [
     index("teamMember_teamId_idx").on(table.teamId),
     index("teamMember_userId_idx").on(table.userId),
+    uniqueIndex("teamMember_membershipKey_uidx").on(table.membershipKey),
   ],
 )
 
