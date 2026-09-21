@@ -29,7 +29,7 @@ When a change establishes or alters a convention, update this file in the same c
 - Stay on the Tailwind scale and snap to the nearest step; no off-ladder one-offs (`gap-7.5`, `size-4.5`, `w-45`, `mb-18`, `text-[0.6rem]`).
 - `gap-2` is the workhorse for tight clusters.
 - Dashboard and console pages use the collapsible `SidebarShell` (`components/shell/sidebar-shell.tsx`) and wrap content in `PageShell` (`components/shell/page-shell.tsx`), which owns `mx-auto` + width + `p-4 sm:p-6` via a `size` variant (`sm`/`md`/`lg`/`full`, default `md` = `max-w-4xl`). The title/description/actions row is `PageHeader` (`components/shell/page-header.tsx`). Never hand-roll `mx-auto`/`max-w-*`/`p-*` or the header layout.
-- Marketing pages share one vertical scale: `py-24` sections and a `px-4 md:px-6` container gutter.
+- Marketing pages share one vertical scale: `py-24` sections and a `px-4 md:px-6` container gutter, both owned by `Section` (`components/marketing/section.tsx`) at `max-w-6xl`. Do not hand-roll a marketing band; the hero is the one exception, because it runs its background up behind the fixed navbar and clears it with its own `pt-14`.
 
 ## Typography and headings
 
@@ -41,6 +41,7 @@ When a change establishes or alters a convention, update this file in the same c
 
 - Semantic tokens only: `text-muted-foreground`, `bg-card`, `border-border`, `bg-sidebar`, and friends. No hardcoded hex, rgb, or hsl in classNames or inline styles. The one exception is Satori-rendered OG images, which have no theme context.
 - Dark mode is `next-themes` (`attribute="class"`, `app/providers.tsx`); pair every `dark:` with a token.
+- The landing page adds three marketing hues on the same blue-violet arc as the chart ramp: `--brand` (the product), `--audio` (anything you listen to rather than read), `--spark` (streak and XP warmth), each with a `--color-*` entry so `text-brand`, `bg-audio/10`, `border-spark/20` all work. One meaning each, so a section never picks a colour by eye. `--brand-foreground` is the text that sits on a filled brand surface; `--brand-glow` is the lighter end of the brand gradient and is for light and gradients only, never for text.
 - Success uses the `--success` token (green-600 light, green-500 dark, mirroring `--destructive`): `text-success`, `bg-success/10`, `border-success/20`. It is foreground-less, like `--destructive`.
 
 ## Layout and landmarks
@@ -54,14 +55,14 @@ When a change establishes or alters a convention, update this file in the same c
 
 ## Motion
 
-- Every looping or auto-playing animation is gated on reduced motion. For a Tailwind utility use the `motion-safe:` variant (`motion-safe:animate-pulse`). For a keyframe Tailwind does not ship, declare it next to the section that uses it and wrap the rule in `@media (prefers-reduced-motion: no-preference)`; marketing keyframes stay out of `globals.css`.
+- Every looping or auto-playing animation is gated on reduced motion. For a Tailwind utility use the `motion-safe:` variant (`motion-safe:animate-pulse`). For a keyframe Tailwind does not ship, declare it next to the section that uses it and wrap the rule in `@media (prefers-reduced-motion: no-preference)`; marketing keyframes stay out of `globals.css` and live in `app/(marketing)/marketing.css`, which the route group's layout imports. That file is plain CSS (no `@apply`, no `@layer`) and holds only what Tailwind has no utility for: 3D transforms, masks, and keyframes, all of the latter behind one `@media (prefers-reduced-motion: no-preference)` block.
 - Anything that moves for more than five seconds also needs a pause affordance, on both hover and `focus-within`, so a keyboard user can stop it (WCAG 2.2.2).
 
 ## Components
 
 - **Loading:** `<Spinner />`, bare, at its default `size-4`. Never hand-roll `RiLoaderLine`.
 - **Empty states:** the `Empty` primitive (`EmptyHeader` / `EmptyMedia` / `EmptyTitle` / ...). Do not hand-roll empty messages.
-- **Badges and pills:** prefer `<Badge>` (with a variant, plus className for a semantic color like `text-success`) over a hand-rolled rounded-full span. Identity rows (avatar + name + email) use `Item` / `ItemMedia` / `ItemContent`. Exceptions: the sidebar trigger identity stays hand-rolled inside `SidebarMenuButton` (the chevron is a sibling there); the marketing landing (`web/next/src/app/(marketing)/page.tsx`) hand-rolls a larger `Eyebrow` pill for section eyebrows and the hero badge, since `<Badge>` is sized for compact UI (`h-5`, `text-xs`).
+- **Badges and pills:** prefer `<Badge>` (with a variant, plus className for a semantic color like `text-success`) over a hand-rolled rounded-full span. Identity rows (avatar + name + email) use `Item` / `ItemMedia` / `ItemContent`. Exceptions: the sidebar trigger identity stays hand-rolled inside `SidebarMenuButton` (the chevron is a sibling there); the marketing landing uses `Eyebrow` (`components/marketing/eyebrow.tsx`) for section eyebrows and the hero badge, since `<Badge>` is sized for compact UI (`h-5`, `text-xs`) and reads as a status chip.
 - **Forms:** native `<form>` then `<FieldGroup>` then `<form.Field>` then `<Field>` + `<FieldLabel>` + `<Input>` + conditional `<FieldError>`, with `@tanstack/react-form` + zod. Let `FieldGroup` own the vertical rhythm (no second `space-y-*`). Do not hand-roll labels or error markup.
 
 - **Dialogs:** bare `<DialogContent>` is centered at `sm:max-w-sm`. The auth dialog (`components/common/access.tsx`) uses `max-w-md`.

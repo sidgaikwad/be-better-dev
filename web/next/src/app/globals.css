@@ -38,6 +38,11 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-glow: var(--brand-glow);
+  --color-audio: var(--audio);
+  --color-spark: var(--spark);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -83,6 +88,12 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* Marketing palette. Three hues, one meaning each, so a landing section never picks a colour by eye: --brand is the product, --audio is anything you listen to rather than read, --spark is streak and XP warmth. They sit on the same blue-violet arc as the chart ramp above. */
+  --brand: oklch(0.51 0.24 277);
+  --brand-foreground: oklch(0.985 0 0);
+  --brand-glow: oklch(0.62 0.21 288);
+  --audio: oklch(0.6 0.13 205);
+  --spark: oklch(0.68 0.16 58);
   --fd-banner-height: 3.5rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -120,6 +131,11 @@
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
+  --brand: oklch(0.7 0.19 277);
+  --brand-foreground: oklch(0.16 0.03 277);
+  --brand-glow: oklch(0.64 0.24 292);
+  --audio: oklch(0.78 0.13 200);
+  --spark: oklch(0.8 0.15 65);
   --sidebar-ring: oklch(0.556 0 0);
 }
 
