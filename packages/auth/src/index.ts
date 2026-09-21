@@ -37,6 +37,7 @@ import { ACCESS_ROLE, CONSOLE_ROLES, roleAtLeast } from "@/access"
 import { grantConsoleAccessOnSignIn } from "@/allowlist"
 import { cookieConfig, localhostHost, type ParsedHost } from "@/lib/utils"
 import { resolveSignInMethod } from "@/sign-in-method"
+import { twoFactorGate } from "@/two-factor-gate"
 
 // The app host's tldts breakdown, inlined at build by @packages/scripts/src/generate-env.ts (see tsdown.config.ts define), so no Public Suffix List ships at runtime. A runtime .localhost host (portless dev, injected after the build) overrides it so web and api share the cookie.
 declare const __DERIVED_TLDTS__: ParsedHost
@@ -200,6 +201,10 @@ export const auth = betterAuth({
       // account-scoped where the Redis rate limiter is request-scoped, so the two answer
       // different questions and both are wanted.
     }),
+    // The challenge the plugin above does not apply here, because its matcher never sees a social
+    // callback or a passkey sign-in. Registered after it, though the two match disjoint paths by
+    // construction. See @/two-factor-gate for what it costs.
+    twoFactorGate(`${resolvedWebOrigin ?? env.HONO_APP_URL}/two-factor`),
   ],
   socialProviders: {
     ...(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
@@ -249,6 +254,7 @@ export const enabledProviders: AuthProvider[] = [
 ]
 
 export { resolveSignInMethod, type SignInContext } from "@/sign-in-method"
+export { TWO_FACTOR_GATED_PATHS } from "@/two-factor-gate"
 
 export type Session = typeof auth.$Infer.Session
 
