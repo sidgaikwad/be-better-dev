@@ -12,7 +12,12 @@ const socials = [
 // In-page anchors only. Every learning surface is behind a session, so linking
 // one from a public footer sends a first-time reader to a sign-in bounce rather
 // than to what the link promised.
-const jumpLinks = [{ href: "#what-you-get", label: "What is inside" }]
+const jumpLinks = [
+  { href: "#who-its-for", label: "Why this exists" },
+  { href: "#what-you-get", label: "What is inside" },
+  { href: "#listen", label: "The audiobook" },
+  { href: "#how-it-works", label: "How a lesson goes" },
+]
 
 export function SiteFooter() {
   return (
