@@ -17,6 +17,7 @@ const jumpLinks = [
   { href: "#what-you-get", label: "What is inside" },
   { href: "#listen", label: "The audiobook" },
   { href: "#how-it-works", label: "How a lesson goes" },
+  { href: "#faq", label: "Questions" },
 ]
 
 export function SiteFooter() {

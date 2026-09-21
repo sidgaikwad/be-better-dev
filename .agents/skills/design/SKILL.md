@@ -29,7 +29,7 @@ When a change establishes or alters a convention, update this file in the same c
 - Stay on the Tailwind scale and snap to the nearest step; no off-ladder one-offs (`gap-7.5`, `size-4.5`, `w-45`, `mb-18`, `text-[0.6rem]`).
 - `gap-2` is the workhorse for tight clusters.
 - Dashboard and console pages use the collapsible `SidebarShell` (`components/shell/sidebar-shell.tsx`) and wrap content in `PageShell` (`components/shell/page-shell.tsx`), which owns `mx-auto` + width + `p-4 sm:p-6` via a `size` variant (`sm`/`md`/`lg`/`full`, default `md` = `max-w-4xl`). The title/description/actions row is `PageHeader` (`components/shell/page-header.tsx`). Never hand-roll `mx-auto`/`max-w-*`/`p-*` or the header layout.
-- Marketing pages share one vertical scale: `py-24` sections and a `px-4 md:px-6` container gutter, both owned by `Section` (`components/marketing/section.tsx`) at `max-w-6xl`. Do not hand-roll a marketing band; the hero is the one exception, because it runs its background up behind the fixed navbar and clears it with its own `pt-14`.
+- Marketing pages share one vertical scale: `py-24` sections and a `px-4 md:px-6` container gutter, both owned by `Section` (`components/marketing/section.tsx`) at `max-w-6xl`. A band that wants a decorative layer bleeding past the container passes it as `background` and adds `overflow-hidden`, rather than absolutely positioning something inside the content. Do not hand-roll a marketing band; the hero is the one exception, because it runs its background up behind the fixed navbar and clears it with its own `pt-14`.
 
 ## Typography and headings
 
@@ -39,7 +39,7 @@ When a change establishes or alters a convention, update this file in the same c
 
 ## Color and theming
 
-- Semantic tokens only: `text-muted-foreground`, `bg-card`, `border-border`, `bg-sidebar`, and friends. No hardcoded hex, rgb, or hsl in classNames or inline styles. The one exception is Satori-rendered OG images, which have no theme context.
+- Semantic tokens only: `text-muted-foreground`, `bg-card`, `border-border`, `bg-sidebar`, and friends. No hardcoded hex, rgb, or hsl in classNames or inline styles. The two exceptions are Satori-rendered OG images, which have no theme context, and a WebGL material (`components/marketing/book-webgl.tsx`): there is no cascade to resolve `var(--brand)` through and three's `Color` cannot parse oklch, so the scene keeps a hand-written hex palette that mirrors the tokens and has to move with them.
 - Dark mode is `next-themes` (`attribute="class"`, `app/providers.tsx`); pair every `dark:` with a token.
 - The landing page adds three marketing hues on the same blue-violet arc as the chart ramp: `--brand` (the product), `--audio` (anything you listen to rather than read), `--spark` (streak and XP warmth), each with a `--color-*` entry so `text-brand`, `bg-audio/10`, `border-spark/20` all work. One meaning each, so a section never picks a colour by eye. `--brand-foreground` is the text that sits on a filled brand surface; `--brand-glow` is the lighter end of the brand gradient and is for light and gradients only, never for text.
 - Success uses the `--success` token (green-600 light, green-500 dark, mirroring `--destructive`): `text-success`, `bg-success/10`, `border-success/20`. It is foreground-less, like `--destructive`.
@@ -56,7 +56,7 @@ When a change establishes or alters a convention, update this file in the same c
 ## Motion
 
 - Every looping or auto-playing animation is gated on reduced motion. For a Tailwind utility use the `motion-safe:` variant (`motion-safe:animate-pulse`). For a keyframe Tailwind does not ship, declare it next to the section that uses it and wrap the rule in `@media (prefers-reduced-motion: no-preference)`; marketing keyframes stay out of `globals.css` and live in `app/(marketing)/marketing.css`, which the route group's layout imports. That file is plain CSS (no `@apply`, no `@layer`) and holds only what Tailwind has no utility for: 3D transforms, masks, and keyframes, all of the latter behind one `@media (prefers-reduced-motion: no-preference)` block.
-- Anything that moves for more than five seconds also needs a pause affordance, on both hover and `focus-within`, so a keyboard user can stop it (WCAG 2.2.2).
+- Anything that moves for more than five seconds also needs a pause affordance, on both hover and `focus-within`, so a keyboard user can stop it (WCAG 2.2.2). The landing page has one such control for all of it, not one per animation: `MotionToggle` (`components/marketing/motion.tsx`) sets `data-motion="paused"` on `<html>`, and `marketing.css`, the only place that knows which classes animate, is the only place that has to know how to stop them. A new marketing keyframe adds its class to that one rule. A canvas has no stylesheet to pause it, so anything drawn in WebGL reads the same state through `useMotion` and holds a rest pose.
 
 ## Components
 
