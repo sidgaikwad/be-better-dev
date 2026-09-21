@@ -22,10 +22,9 @@ prerequisite (the better-auth upgrade) is still being argued about.
 
 ## Next action
 
-Start Chain A step 1: the `twoFactor` table, `user.twoFactorEnabled`, and a `signInMethod` column
-on `session`, as `0008_two_factor.sql`. Nothing is blocked on a decision any more: carbon settled
-the gate question (challenge every sign-in method, exempt only SSO) and the plugin is already
-installed. ~1 h.
+Chain A step 3: record the sign-in method on the session. `session.sign_in_method` exists and is
+still null for every row; it needs `session: { additionalFields: { signInMethod: ... } }` plus a
+`databaseHooks.session.create.before` that reads the path. ~1 h. Step 4, the gate, depends on it.
 
 Chain B's prerequisite, bumping `better-auth` off 1.6.25, is independent and can start in parallel.
 
@@ -263,14 +262,20 @@ react-email dependency. (The only hits are Rust course _lesson content_ under
 `packages/scripts/src/course/`.) Carbon has Resend; we do not.
 
 Consequence: `otpOptions` and `/two-factor/send-otp` are unusable. **TOTP plus backup codes only.**
-Do not leave `send-otp` reachable and broken; it is reachable through the catch-all whether we
-intend it or not, so either wire a sender or make the UI never offer it and say so in the doc.
+
+Settled while registering the plugin, and it needs no work: the OTP endpoints mount unconditionally
+(`const otp = otp2fa(options?.otpOptions)`), but the plugin handles a missing sender properly rather
+than half-working. `/two-factor/send-otp` refuses with `BAD_REQUEST / OTP_NOT_CONFIGURED`, and the
+`twoFactorMethods` array a challenge returns only names `"otp"` when `sendOTP` is configured, so the
+UI is never offered a method it cannot complete. Leave `otpOptions` absent.
 
 ### Storage
 
-`secret` and `backupCodes` both have `returned: false`, so the plugin never serialises them. The
-secret is stored in plaintext in Postgres unless `totpOptions.storeSecret` is configured with an
-encryptor. Treat the `twoFactor` table as credential material: no console read surface, no logging,
+`secret` and `backupCodes` both have `returned: false`, so the plugin never serialises them. They
+are not stored alike, which is worth knowing before deciding either is safe: `backupCodeOptions`
+defaults to `storeBackupCodes: "encrypted"`, so the codes are encrypted at rest without any
+configuration, while the **TOTP secret is plaintext** unless `totpOptions.storeSecret` is configured
+with an encryptor, and it is not. Treat the `twoFactor` table as credential material: no console read surface, no logging,
 no inclusion in any admin user dump.
 
 ### Recovery: backup codes, admin reset, or both
@@ -419,13 +424,14 @@ hostname change has to land.
 
 ### Chain A: 2FA (no dependency on chain B)
 
-1. **Schema and migration** (~1 h). `twoFactor` table plus `user.twoFactorEnabled` in
+1. ~~**Schema and migration**~~ (done, `#57`). `twoFactor` table plus `user.twoFactorEnabled` in
    `packages/db/src/schema/auth.ts`, exported from `schema/index.ts`, added to the
    `drizzleAdapter` schema map in `packages/auth/src/index.ts`. Generate `0008_two_factor.sql`.
    Follow `0007_passkey.sql` for shape: FK with `ON DELETE cascade`, `twoFactor_userId_idx`.
    Add a `signInMethod` column to `session` in the same migration (see step 3).
-2. **Server plugin** (~30 min). `twoFactor({ issuer: site.name, allowPasswordless: true })`, plus a
-   `twoFactorEnabled` export mirroring `passkeyEnabled`. OTP unreachable, see above.
+2. ~~**Server plugin**~~ (done). Registered with `issuer: site.name` and `allowPasswordless: true`,
+   the table wired into the `drizzleAdapter` map, and a `twoFactorAvailable` export. Named that way
+   and not `twoFactorEnabled`, which is the per-user column and means something else entirely.
 3. **Record the sign-in method on the session** (~1 h). Better Auth has no `amr` claim. Without
    this we cannot build carbon's SSO exemption later and cannot tell a linked account's magic-link
    login from a real SSO login. Cheaper now than retrofitted.
