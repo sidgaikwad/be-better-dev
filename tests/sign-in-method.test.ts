@@ -20,6 +20,22 @@ describe("resolveSignInMethod", () => {
     expect(resolveSignInMethod({ path: "/sign-in/email" })).toBe("email")
   })
 
+  test("names an SSO callback, in both shapes the plugin registers", () => {
+    expect(resolveSignInMethod({ path: "/sso/callback" })).toBe("sso")
+    expect(
+      resolveSignInMethod({
+        params: { providerId: "acme-oidc" },
+        path: "/sso/callback/:providerId",
+      }),
+    ).toBe("sso")
+  })
+
+  // SAML is not enabled, so its ACS path is unmapped on purpose: a session it minted records as
+  // null and gets challenged, rather than silently wearing an exemption nothing has tested.
+  test("does not name a SAML callback while SAML is off", () => {
+    expect(resolveSignInMethod({ path: "/sso/saml2/sp/acs/:providerId" })).toBeNull()
+  })
+
   test("marks an impersonation as itself, never as the target's sign-in", () => {
     expect(resolveSignInMethod({ path: "/admin/impersonate-user" })).toBe("impersonation")
   })
