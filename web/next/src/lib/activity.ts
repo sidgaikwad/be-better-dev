@@ -6,6 +6,7 @@ export const ACTION_LABELS: Record<ActivityAction, string> = {
   "allowlist.remove": "Removed rule",
   "role.change": "Set role",
   "user.ban": "Banned",
+  "user.two-factor.reset": "Reset two-factor",
   "user.unban": "Unbanned",
   "waitlist.remove": "Removed signup",
 }
