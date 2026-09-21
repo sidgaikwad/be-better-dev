@@ -1,0 +1,289 @@
+/* Visuals that only the marketing surfaces use: the aurora field, the lit book,
+   and the keyframes both need. They live next to the route rather than in
+   globals.css so the app shell never ships them, and so every keyframe can sit
+   behind a single reduced-motion gate instead of a `motion-safe:` per call site.
+
+   Plain CSS on purpose: no @apply, no @layer. Each class does something Tailwind
+   has no utility for (3D transforms, a mask, a keyframe), so nothing here ever
+   competes with a utility for specificity. */
+
+/* ---------------------------------------------------------------- background */
+
+/* A field of soft light behind a section. Blurred radial blobs rather than a
+   flat gradient, so the corners stay dark and the eye lands mid-frame. */
+.aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.26;
+  will-change: transform;
+}
+
+.dark .aurora-blob {
+  opacity: 0.38;
+}
+
+/* The engineering-paper grid, faded out towards the edges so it never reaches a
+   hard line against the page. */
+.aurora-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 35%, black 10%, transparent 75%);
+  opacity: 0.6;
+}
+
+/* ---------------------------------------------------------------------- book */
+
+.book-scene {
+  perspective: 1600px;
+  perspective-origin: 50% 42%;
+}
+
+.book {
+  --book-w: 15rem;
+  --book-h: 21rem;
+  --book-d: 3.25rem;
+  position: relative;
+  width: var(--book-w);
+  height: var(--book-h);
+  transform-style: preserve-3d;
+  transform: rotateX(9deg) rotateY(-31deg) rotateZ(-1.5deg);
+}
+
+.book-face {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  backface-visibility: hidden;
+}
+
+.book-front,
+.book-back {
+  width: var(--book-w);
+  height: var(--book-h);
+  border-radius: 2px 8px 8px 2px;
+  background:
+    linear-gradient(145deg, color-mix(in oklch, var(--brand-glow), white 8%), var(--brand) 55%),
+    var(--brand);
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, white, transparent 82%);
+}
+
+.book-front {
+  transform: translate(-50%, -50%) translateZ(calc(var(--book-d) / 2));
+}
+
+.book-back {
+  transform: translate(-50%, -50%) translateZ(calc(var(--book-d) / -2)) rotateY(180deg);
+  filter: brightness(0.72);
+}
+
+/* The bound edge: darker, with the raised bands a hardback spine has. */
+.book-spine {
+  width: var(--book-d);
+  height: var(--book-h);
+  border-radius: 8px 2px 2px 8px;
+  transform: translate(-50%, -50%) rotateY(-90deg) translateZ(calc(var(--book-w) / 2));
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 14%,
+      color-mix(in oklch, black, transparent 82%) 14% 15%
+    ),
+    linear-gradient(to right, color-mix(in oklch, var(--brand), black 45%), var(--brand-glow));
+}
+
+/* The three cut edges are paper, not cover: a fine striation reads as pages at
+   any size, where a flat fill reads as a solid block. */
+.book-pages {
+  background: repeating-linear-gradient(
+    to right,
+    color-mix(in oklch, var(--background), white 55%) 0 2px,
+    color-mix(in oklch, var(--background), black 8%) 2px 3px
+  );
+}
+
+.book-fore {
+  width: calc(var(--book-d) - 4px);
+  height: calc(var(--book-h) - 6px);
+  border-radius: 1px 4px 4px 1px;
+  transform: translate(-50%, -50%) rotateY(90deg) translateZ(calc(var(--book-w) / 2 - 3px));
+}
+
+.book-top,
+.book-bottom {
+  width: calc(var(--book-w) - 6px);
+  height: calc(var(--book-d) - 4px);
+  background: repeating-linear-gradient(
+    to bottom,
+    color-mix(in oklch, var(--background), white 55%) 0 2px,
+    color-mix(in oklch, var(--background), black 8%) 2px 3px
+  );
+}
+
+.book-top {
+  transform: translate(-50%, -50%) rotateX(90deg) translateZ(calc(var(--book-h) / 2 - 3px));
+}
+
+.book-bottom {
+  transform: translate(-50%, -50%) rotateX(-90deg) translateZ(calc(var(--book-h) / 2 - 3px));
+  filter: brightness(0.8);
+}
+
+/* The light the book sits in: a warm key from upper left, a brand rim, and a
+   soft contact shadow on the floor under it. */
+.book-key-light {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklch, white, transparent 65%),
+    transparent 45%,
+    color-mix(in oklch, black, transparent 78%)
+  );
+}
+
+.book-glow {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(circle, var(--brand-glow), transparent 70%);
+  filter: blur(60px);
+  opacity: 0.45;
+}
+
+.book-shadow {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(
+    ellipse,
+    color-mix(in oklch, black, transparent 55%),
+    transparent 70%
+  );
+  filter: blur(24px);
+  opacity: 0.35;
+}
+
+/* Rings leaving the book: the one visual cue that this is a book you listen to. */
+.book-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1px solid var(--audio);
+  opacity: 0;
+}
+
+/* ----------------------------------------------------------------- keyframes */
+
+@keyframes book-float {
+  0%,
+  100% {
+    transform: rotateX(9deg) rotateY(-31deg) rotateZ(-1.5deg) translateY(-0.5rem);
+  }
+  50% {
+    transform: rotateX(6deg) rotateY(-25deg) rotateZ(-1.5deg) translateY(0.5rem);
+  }
+}
+
+@keyframes aurora-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(4%, -6%, 0) scale(1.12);
+  }
+}
+
+@keyframes glow-breathe {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes ring-out {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .book-animate {
+    animation: book-float 11s ease-in-out infinite;
+  }
+  .aurora-animate {
+    animation: aurora-drift 22s ease-in-out infinite;
+  }
+  .glow-animate {
+    animation: glow-breathe 7s ease-in-out infinite;
+  }
+  .ring-animate {
+    animation: ring-out 4s ease-out infinite;
+  }
+}
+
+/* Blob placement. Here rather than as Tailwind arbitrary values because these
+   are decorative geometry, not spacing: percentages off the section box that
+   would otherwise put `top-[-18%]` into a className and off the scale. */
+.aurora-blob-brand {
+  top: -18%;
+  left: -10%;
+  width: 40rem;
+  height: 40rem;
+  background: var(--brand);
+}
+
+.aurora-blob-audio {
+  top: 8%;
+  right: -14%;
+  width: 34rem;
+  height: 34rem;
+  background: var(--audio);
+  animation-delay: -7s;
+}
+
+.aurora-blob-spark {
+  bottom: -30%;
+  left: 28%;
+  width: 30rem;
+  height: 30rem;
+  background: var(--spark);
+  opacity: 0.2;
+  animation-delay: -14s;
+}
+
+.dark .aurora-blob-spark {
+  opacity: 0.22;
+}
+
+/* The three rings leave in sequence, a third of the cycle apart, so the book
+   reads as emitting sound rather than pulsing once. */
+.ring-delay-1 {
+  animation-delay: 1.33s;
+}
+
+.ring-delay-2 {
+  animation-delay: 2.66s;
+}
+
+/* One switch for all of it. MotionToggle sets this on <html>; the stylesheet is
+   the only place that knows which classes animate, so it is also the only place
+   that has to know how to stop them. */
+[data-motion="paused"] .book-animate,
+[data-motion="paused"] .aurora-animate,
+[data-motion="paused"] .glow-animate,
+[data-motion="paused"] .ring-animate {
+  animation-play-state: paused;
+}

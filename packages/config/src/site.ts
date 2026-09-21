@@ -1,8 +1,9 @@
 // Brand identity for this app: the single source a fork edits to rebrand. web reads it via lib/config.ts.
 export const site = {
   name: "Be-better-dev",
-  description: "Be-better-dev is just getting started. Tell its story here.",
-  tagline: "Your tagline, ready when you are.",
+  description:
+    "A full Rust and system design curriculum built for people who stall on page one. Every lesson is cut into steps you can finish, read aloud by your own device, and remembered for you with spaced review and notes that stay where you put them.",
+  tagline: "Learn to code on the days reading is hard",
   social: {
     discord: "",
     github: "",
