@@ -49,6 +49,7 @@
     "shiki": "catalog:",
     "tailwind-merge": "catalog:",
     "takumi-js": "catalog:",
+    "three": "catalog:",
     "vaul": "catalog:",
     "zod": "catalog:"
   },
@@ -61,6 +62,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@types/three": "catalog:",
     "babel-plugin-react-compiler": "catalog:",
     "portless": "catalog:",
     "shadcn": "catalog:",

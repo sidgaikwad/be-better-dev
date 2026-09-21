@@ -2,7 +2,7 @@ import { RiArrowDownLine, RiSparkling2Line } from "@remixicon/react"
 
 import { Access } from "@/components/common/access"
 import { Aurora } from "@/components/marketing/aurora"
-import { BookCss } from "@/components/marketing/book-css"
+import { Book } from "@/components/marketing/book"
 import { Eyebrow } from "@/components/marketing/eyebrow"
 import { MotionToggle } from "@/components/marketing/motion"
 import { Button } from "@/components/ui/button"
@@ -69,7 +69,7 @@ export function Hero() {
           </dl>
         </div>
 
-        <BookCss className="justify-self-center lg:justify-self-end" />
+        <Book className="justify-self-center lg:justify-self-end" />
         <MotionToggle className="absolute right-0 bottom-0" />
       </div>
     </section>
