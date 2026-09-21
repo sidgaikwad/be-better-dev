@@ -4,6 +4,7 @@ import { Access } from "@/components/common/access"
 import { Aurora } from "@/components/marketing/aurora"
 import { BookCss } from "@/components/marketing/book-css"
 import { Eyebrow } from "@/components/marketing/eyebrow"
+import { MotionToggle } from "@/components/marketing/motion"
 import { Button } from "@/components/ui/button"
 import { courseStats } from "@/lib/marketing"
 
@@ -26,7 +27,7 @@ export function Hero() {
     // aurora runs to the very top of the page and behind the translucent bar.
     <section
       aria-labelledby="hero-heading"
-      className="relative overflow-hidden pt-14 pb-24"
+      className="group/hero relative overflow-hidden pt-14 pb-24"
       id="hero"
     >
       <Aurora />
@@ -69,6 +70,7 @@ export function Hero() {
         </div>
 
         <BookCss className="justify-self-center lg:justify-self-end" />
+        <MotionToggle className="absolute right-0 bottom-0" />
       </div>
     </section>
   )

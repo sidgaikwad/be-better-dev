@@ -277,3 +277,13 @@
 .ring-delay-2 {
   animation-delay: 2.66s;
 }
+
+/* One switch for all of it. MotionToggle sets this on <html>; the stylesheet is
+   the only place that knows which classes animate, so it is also the only place
+   that has to know how to stop them. */
+[data-motion="paused"] .book-animate,
+[data-motion="paused"] .aurora-animate,
+[data-motion="paused"] .glow-animate,
+[data-motion="paused"] .ring-animate {
+  animation-play-state: paused;
+}

@@ -1,3 +1,4 @@
+import { MotionProvider } from "@/components/marketing/motion"
 import { SiteFooter } from "@/components/marketing/site-footer"
 
 import "@/app/(marketing)/marketing.css"
@@ -7,9 +8,9 @@ import "@/app/(marketing)/marketing.css"
 // the fixed translucent navbar and clear it with its own pt-14.
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
+    <MotionProvider>
       {children}
       <SiteFooter />
-    </>
+    </MotionProvider>
   )
 }
