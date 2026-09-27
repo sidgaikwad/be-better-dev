@@ -7,7 +7,7 @@ Teresa Torres sorts the assumptions behind a solution into five types: desirabil
 ```text
 Desirability  A parent who reads it will pay without visiting.
 Desirability  Students will forward the link to a parent.
-Viability     Reports reuse the ₹1,000 verification visit
+Viability     Reports reuse the ₹600 verification visit
               already paid for, so they add little cost.
 Feasibility   The link opens in WhatsApp without an account.
 Usability     A parent can read it on a phone, in English.
