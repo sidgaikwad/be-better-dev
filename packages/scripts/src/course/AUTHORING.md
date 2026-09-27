@@ -98,6 +98,7 @@ export const traitsAndGenerics: SectionSeed = {
 - Frameworks are tools, not answers. Name who introduced each one and when, run it on a real decision, then show where it breaks.
 - Take a side. A lesson ends on a decision and the reason for it, not a menu of options.
 - The spine is Intellipaat's free [Product Management Course](https://www.youtube.com/watch?v=abA-QZzbon0) (2025). Credit the video when an example comes from it. Where its version differs from the originator's (the NPS scale, what counts as disruptive), teach the originator's and note the video's once.
+- Write rupee amounts with Western digit grouping (₹600,000, never ₹6,00,000) and without lakh or crore: the audiobook's speech engine reads Indian grouping unreliably, and readers outside India may not know the units.
 - Real companies get only facts that are on the record, with the year. Invented numbers belong to Roost or to a company the lesson says is hypothetical, never to a real one.
 - The running product is **Roost**. Use it wherever a lesson needs a concrete product, and keep these facts consistent:
   - A marketplace app that helps college students in India find verified hostels and PG (paying guest) rooms near campus. Two sides: students who book, and property owners who list.
