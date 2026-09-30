@@ -91,6 +91,22 @@ export const traitsAndGenerics: SectionSeed = {
 - Diagrams are prose plus an ordered list, not ASCII art: the lessons are read aloud by the audiobook, and a box drawing becomes noise.
 - The books use a leader-follower database as "master-slave". Teach the current terms and note the book's wording once where a reader would otherwise be lost.
 
+### Product management
+
+- Step 2 carries the artifact the idea lives in: an interview script, a PRD excerpt, a user story with its acceptance criteria, a scoring table, a positioning statement, a metric worked from raw counts, a roadmap slice. Keep tables small; they are read aloud.
+- Do the arithmetic on the page, as the system design course does: RICE scores, churn compounding, lifetime value, sample sizes, break-even units. Show every intermediate number.
+- Frameworks are tools, not answers. Name who introduced each one and when, run it on a real decision, then show where it breaks.
+- Take a side. A lesson ends on a decision and the reason for it, not a menu of options.
+- The spine is Intellipaat's free [Product Management Course](https://www.youtube.com/watch?v=abA-QZzbon0) (2025). Credit the video when an example comes from it. Where its version differs from the originator's (the NPS scale, what counts as disruptive), teach the originator's and note the video's once.
+- Real companies get only facts that are on the record, with the year. Invented numbers belong to Roost or to a company the lesson says is hypothetical, never to a real one.
+- The running product is **Roost**. Use it wherever a lesson needs a concrete product, and keep these facts consistent:
+  - A marketplace app that helps college students in India find verified hostels and PG (paying guest) rooms near campus. Two sides: students who book, and property owners who list.
+  - Live in Pune, Bengaluru and Hyderabad, with about 1,200 listed properties, 60,000 monthly active students and around 4,000 bookings a month. Demand is seasonal: most bookings land between June and August, before the academic year.
+  - Average rent is ₹9,000 a month. Roost earns an 8% commission on the first month's rent of each booking, plus paid Featured listings for owners.
+  - The team is one PM (the reader, in most lessons), a designer, five engineers, and an operations team that visits properties to verify them.
+  - Early research surfaced fake listings, hidden charges, safety worries, reviews nobody trusted, and a wish to pay in instalments. Parents often pay, so the buyer is not always the user.
+  - A lesson may add numbers for its own scenario (a funnel, a cohort, a test) but must not contradict these.
+
 ## Writing style
 
 - Documentation voice: plain, precise, human. The Rust std docs and the source books are the bar.
@@ -133,3 +149,9 @@ No crate: there is nothing to compile. The hands-on half is the `## Predict, the
 which for this course poses a design decision rather than a program's output. Give it a scenario
 with numbers ("the feed service is at 5k QPS and a celebrity with 40 million followers posts"),
 ask what breaks or what you would change, then answer it in full. That block is the exercise.
+
+### Product management
+
+No crate either. The `## Predict, then verify` block poses a product decision with numbers ("RICE
+puts the search fix first, the founder wants instalment payments, and the admissions season starts
+in six weeks: what ships?"), then answers it in full and names the principle that decided it.

@@ -1,8 +1,9 @@
 # Be-better-dev
 
-Courses you study like a game: spaced review, streaks, XP and badges. Two are on the shelf, 390
-lessons between them, and the switcher on the course map moves between them. Progress is per
-lesson, so neither one blocks the other.
+Courses you study like a game: spaced review, streaks, XP and badges. Three are on the shelf: two
+complete, with 390 lessons between them, and a third on product management being written section by
+section. The switcher on the course map moves between them. Progress is per lesson, so no course
+blocks another.
 
 Built on top of [ZeroStarter](https://zerostarter.dev).
 
@@ -36,6 +37,27 @@ systems designed end to end.
 Every lesson works its arithmetic on the page, names a tradeoff and takes a side, and closes with a
 design drill rather than a coding exercise.
 
+## Product Management: Idea to Market
+
+37 sections across seven parts, following Intellipaat's free
+[Product Management Course](https://www.youtube.com/watch?v=abA-QZzbon0) and filled in from the
+field's primary sources: Cagan, Torres, Christensen, Moesta, Rumelt, Kohavi, Dunford and others. It
+is being written now; a section with no lessons yet shows on the map as upcoming.
+
+| Part                  | Sections | Lessons planned | Covers                                                                                  |
+| --------------------- | -------- | --------------- | --------------------------------------------------------------------------------------- |
+| 1. The job            | 3        | 16              | the role and its four risks, business models, the product lifecycle                     |
+| 2. Discovery          | 6        | 29              | interviews, jobs to be done, personas, voice of the customer, MVPs, product-market fit  |
+| 3. Strategy           | 5        | 21              | vision, competitive advantage, competitor analysis, growth strategy, disruption         |
+| 4. Building           | 8        | 38              | development pipeline, prioritization, features, specs, stories, design, roadmaps, agile |
+| 5. Measuring          | 6        | 26              | metrics, retention, unit economics, experiments, analytics, customer value              |
+| 6. Going to market    | 5        | 21              | positioning, go-to-market, pricing, launching, growth loops                             |
+| 7. The PM in the room | 4        | 20              | stakeholders, building responsibly, AI products, the career                             |
+
+Every lesson runs its framework on a real decision, most often for Roost, a student-housing
+marketplace that serves as the course's running product, and closes with a product decision to
+make rather than a coding exercise.
+
 Every lesson closes with a predict-then-verify exercise and carries three quiz items. Answering
 them wrong is the point: misses re-enter the spaced-review queue sooner than hits.
 
@@ -43,8 +65,8 @@ them wrong is the point: misses re-enter the spaced-review queue sooner than hit
 
 Reading about the borrow checker and arguing with it are different skills, so the Rust lessons have
 a hands-on half in `exercises/`: a Cargo workspace with one crate per section, stubbed functions,
-and a test suite that is red on purpose. The suite is the specification. The system design course
-has no crate; its hands-on half is the design drill that closes each lesson.
+and a test suite that is red on purpose. The suite is the specification. The other two courses have
+no crate; their hands-on half is the design or product decision that closes each lesson.
 
 ```bash
 cd exercises
@@ -112,8 +134,8 @@ registered against a `*.vercel.app` host stop working if that host ever changes.
 
 ## Writing course content
 
-Sections live one module each in `packages/scripts/src/course/sections/`, with lesson bodies as
-markdown in `course/content/`. `packages/scripts/src/course/AUTHORING.md` is the spec: structure,
+Each course is a folder under `packages/scripts/src/course/`, named for its slug, with one module
+per section in `sections/` and lesson bodies as markdown in `content/`. `packages/scripts/src/course/AUTHORING.md` is the spec: structure,
 length, quiz shape, and the writing rules. After editing, run `bun run db:seed`.
 
 Content upserts by slug, so revising a lesson leaves progress intact. Lesson slugs are permanent
@@ -133,3 +155,7 @@ exercises/         the Rust workspace you actually write code in
 
 The Part 3 track follows _Zero to Production in Rust_ by Luca Palmieri. The lessons are original
 writing about the book's material, not a substitute for it. Buy the book.
+
+The product management course uses Intellipaat's free _Product Management Course_ on YouTube as its
+syllabus. The lessons are original writing that checks the video's claims against the primary
+sources it draws on.
