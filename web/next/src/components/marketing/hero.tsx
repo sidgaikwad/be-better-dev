@@ -13,7 +13,7 @@ import { courseStats } from "@/lib/marketing"
 const cta = "h-11 w-auto px-6 text-base"
 
 const stats = [
-  { label: "lessons, across two courses", value: courseStats.lessons.toLocaleString("en-US") },
+  { label: "lessons, across three courses", value: courseStats.lessons.toLocaleString("en-US") },
   {
     label: "quiz questions on a review clock",
     value: courseStats.quizQuestions.toLocaleString("en-US"),
@@ -42,9 +42,9 @@ export function Hero() {
             .
           </h1>
           <p className="text-muted-foreground mt-6 text-lg text-pretty">
-            A full Rust and system design curriculum for anyone who stalls on page one. Every lesson
-            is cut into steps with a clock on them, and read aloud by your own device. Spaced review
-            and anchored notes do the remembering.
+            Full Rust, system design and product management courses for anyone who stalls on page
+            one. Every lesson is cut into steps with a clock on them, and read aloud by your own
+            device. Spaced review and anchored notes do the remembering.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Access className={cta} label="Start learning" size="lg" variant="default" />

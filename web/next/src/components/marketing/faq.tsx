@@ -15,10 +15,11 @@ const questions: { answer: React.ReactNode; question: string }[] = [
   {
     answer: (
       <p>
-        Two courses. Rust: Zero to Production, and System Design: Interview to Production. Together
-        that is {courseStats.sections} sections, {courseStats.lessons.toLocaleString("en-US")}{" "}
-        lessons and {courseStats.quizQuestions.toLocaleString("en-US")} quiz questions, written end
-        to end rather than stubbed out.
+        Three courses: Rust: Zero to Production, System Design: Interview to Production, and Product
+        Management: Idea to Market. Together that is {courseStats.sections} sections,{" "}
+        {courseStats.lessons.toLocaleString("en-US")} lessons and{" "}
+        {courseStats.quizQuestions.toLocaleString("en-US")} quiz questions, written end to end
+        rather than stubbed out.
       </p>
     ),
     question: "What is actually in the course?",

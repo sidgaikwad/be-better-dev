@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.0.14
+
+[compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.13...v0.0.14)
+
+### 🚀 Enhancements
+
+- Add the product management course ([#74](https://github.com/sidgaikwad/be-better-dev/pull/74))
+- **course:** Part 1 of the product management course ([#75](https://github.com/sidgaikwad/be-better-dev/pull/75))
+- **course:** Part 2 of the product management course ([#76](https://github.com/sidgaikwad/be-better-dev/pull/76))
+
+### 🩹 Fixes
+
+- **deps:** Lift brace-expansion to 5.0.11 and undici to 7.29.1 ([#78](https://github.com/sidgaikwad/be-better-dev/pull/78))
+
+### ❤️ Contributors
+
+- Siddharth Gaikwad @sidgaikwad
+
 ## v0.0.13
 
 [compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.12...v0.0.13)
