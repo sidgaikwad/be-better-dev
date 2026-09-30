@@ -1,9 +1,8 @@
 # Be-better-dev
 
-Courses you study like a game: spaced review, streaks, XP and badges. Three are on the shelf: two
-complete, with 390 lessons between them, and a third on product management being written section by
-section. The switcher on the course map moves between them. Progress is per lesson, so no course
-blocks another.
+Courses you study like a game: spaced review, streaks, XP and badges. Three are on the shelf, 561
+lessons between them, and the switcher on the course map moves between them. Progress is per
+lesson, so no course blocks another.
 
 Built on top of [ZeroStarter](https://zerostarter.dev).
 
@@ -41,18 +40,18 @@ design drill rather than a coding exercise.
 
 37 sections across seven parts, following Intellipaat's free
 [Product Management Course](https://www.youtube.com/watch?v=abA-QZzbon0) and filled in from the
-field's primary sources: Cagan, Torres, Christensen, Moesta, Rumelt, Kohavi, Dunford and others. It
-is being written now; a section with no lessons yet shows on the map as upcoming.
+field's primary sources: Cagan, Torres, Christensen, Moesta, Rumelt, Kohavi, Dunford and others.
+171 lessons and 513 quiz items.
 
-| Part                  | Sections | Lessons planned | Covers                                                                                  |
-| --------------------- | -------- | --------------- | --------------------------------------------------------------------------------------- |
-| 1. The job            | 3        | 16              | the role and its four risks, business models, the product lifecycle                     |
-| 2. Discovery          | 6        | 29              | interviews, jobs to be done, personas, voice of the customer, MVPs, product-market fit  |
-| 3. Strategy           | 5        | 21              | vision, competitive advantage, competitor analysis, growth strategy, disruption         |
-| 4. Building           | 8        | 38              | development pipeline, prioritization, features, specs, stories, design, roadmaps, agile |
-| 5. Measuring          | 6        | 26              | metrics, retention, unit economics, experiments, analytics, customer value              |
-| 6. Going to market    | 5        | 21              | positioning, go-to-market, pricing, launching, growth loops                             |
-| 7. The PM in the room | 4        | 20              | stakeholders, building responsibly, AI products, the career                             |
+| Part                  | Sections | Lessons | Covers                                                                                  |
+| --------------------- | -------- | ------- | --------------------------------------------------------------------------------------- |
+| 1. The job            | 3        | 16      | the role and its four risks, business models, the product lifecycle                     |
+| 2. Discovery          | 6        | 29      | interviews, jobs to be done, personas, voice of the customer, MVPs, product-market fit  |
+| 3. Strategy           | 5        | 21      | vision, competitive advantage, competitor analysis, growth strategy, disruption         |
+| 4. Building           | 8        | 38      | development pipeline, prioritization, features, specs, stories, design, roadmaps, agile |
+| 5. Measuring          | 6        | 26      | metrics, retention, unit economics, experiments, analytics, customer value              |
+| 6. Going to market    | 5        | 21      | positioning, go-to-market, pricing, launching, growth loops                             |
+| 7. The PM in the room | 4        | 20      | stakeholders, building responsibly, AI products, the career                             |
 
 Every lesson runs its framework on a real decision, most often for Roost, a student-housing
 marketplace that serves as the course's running product, and closes with a product decision to
