@@ -2,7 +2,7 @@
 export const site = {
   name: "Be-better-dev",
   description:
-    "A full Rust and system design curriculum built for people who stall on page one. Every lesson is cut into steps you can finish, read aloud by your own device, and remembered for you with spaced review and notes that stay where you put them.",
+    "Full Rust, system design and product management courses built for people who stall on page one. Every lesson is cut into steps you can finish, read aloud by your own device, and remembered for you with spaced review and notes that stay where you put them.",
   tagline: "Learn to code on the days reading is hard",
   social: {
     discord: "",
