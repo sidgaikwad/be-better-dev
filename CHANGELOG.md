@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.0.15
+
+[compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.14...v0.0.15)
+
+### 🚀 Enhancements
+
+- **course:** Part 3 of the product management course ([#79](https://github.com/sidgaikwad/be-better-dev/pull/79))
+- **course:** Part 5 of the product management course ([#81](https://github.com/sidgaikwad/be-better-dev/pull/81))
+- **course:** Part 4 of the product management course ([#83](https://github.com/sidgaikwad/be-better-dev/pull/83))
+- **course:** Part 6 of the product management course ([#82](https://github.com/sidgaikwad/be-better-dev/pull/82))
+- **course:** Finish the product management course ([#84](https://github.com/sidgaikwad/be-better-dev/pull/84))
+
+### ❤️ Contributors
+
+- Siddharth Gaikwad @sidgaikwad
+
 ## v0.0.14
 
 [compare changes](https://github.com/sidgaikwad/be-better-dev/compare/v0.0.13...v0.0.14)
